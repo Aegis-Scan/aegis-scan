@@ -1,0 +1,97 @@
+name: Bug Report
+description: Something isn't working right
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill out the sections below so we can reproduce and fix it.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly. What did you expect vs. what actually happened?
+      placeholder: "When I ran `aegis scan ./my-skill`, the scanner crashed with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to trigger the bug.
+      placeholder: |
+        1. Install aegis-audit 0.1.0
+        2. Run `aegis scan ./path/to/skill --no-llm`
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error output / traceback
+      description: Paste the full error message or traceback. This will be auto-formatted as code.
+      render: shell
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install Aegis?
+      options:
+        - pip install aegis-audit
+        - pip install -e . (from source)
+        - MCP server (via Cursor)
+        - MCP server (via Claude Desktop)
+        - ClawHub skill
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Which component is affected?
+      options:
+        - CLI (aegis scan / lock / verify)
+        - MCP server (scan_skill / verify_lockfile / list_capabilities)
+        - AST parser / scanner
+        - Secret scanner
+        - Lockfile generation / verification
+        - LLM analysis
+        - Console output / reporting
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Aegis version
+      description: Run `aegis --version` or `pip show aegis-audit`
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.3"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11 / macOS 14.5 / Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else? Screenshots, sample skill code, relevant config?

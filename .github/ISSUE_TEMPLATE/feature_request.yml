@@ -1,0 +1,69 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for Aegis? We'd love to hear it. Please describe what you'd like and why.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point or gap. What are you trying to do that Aegis doesn't support today?
+      placeholder: "I'm trying to scan a Rust-based MCP tool but Aegis only analyzes Python/JS/Shell..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe your ideal solution
+      description: How would this work from a user's perspective? What would the command, output, or behavior look like?
+      placeholder: |
+        `aegis scan ./my-rust-tool` should detect unsafe blocks, FFI calls, and network access in Rust source files.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area of Aegis does this relate to?
+      options:
+        - New scanner / language support
+        - Existing scanner improvement
+        - CLI commands / flags
+        - MCP server / tools
+        - Lockfile / verification
+        - LLM analysis
+        - Risk scoring / policy engine
+        - Output / reporting format
+        - Documentation
+        - CI / automation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: importance
+    attributes:
+      label: How important is this to you?
+      options:
+        - Nice to have
+        - Would significantly improve my workflow
+        - Blocking my use case
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Have you tried any workarounds? Are there other tools that do this?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Examples, screenshots, links to related issues or discussions?

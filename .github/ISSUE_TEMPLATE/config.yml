@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability
+    url: mailto:enterprise@aegis.network
+    about: For responsible disclosure of security vulnerabilities, please email us directly. Do NOT open a public issue.
+  - name: Enterprise Licensing
+    url: mailto:enterprise@aegis.network
+    about: For commercial license inquiries and enterprise support.
