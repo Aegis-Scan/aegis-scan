@@ -74,7 +74,7 @@ def generate_keypair(key_dir: Path | None = None) -> tuple[Ed25519PrivateKey, Ed
     private_key = Ed25519PrivateKey.generate()
     public_key = private_key.public_key()
 
-    # Save private key
+    # Save private key (owner-only permissions)
     private_pem = private_key.private_bytes(
         encoding=Encoding.PEM,
         format=PrivateFormat.PKCS8,
@@ -82,6 +82,10 @@ def generate_keypair(key_dir: Path | None = None) -> tuple[Ed25519PrivateKey, Ed
     )
     private_path = key_dir / "developer_private.pem"
     private_path.write_bytes(private_pem)
+    try:
+        private_path.chmod(0o600)
+    except OSError:
+        pass  # Windows doesn't support Unix permissions; ACLs used instead
 
     # Save public key
     public_pem = public_key.public_bytes(

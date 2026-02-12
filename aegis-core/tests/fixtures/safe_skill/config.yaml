@@ -1,0 +1,7 @@
+api:
+  base_url: "https://api.weather.com/v1"
+  timeout: 30
+
+cache:
+  enabled: true
+  ttl: 300

@@ -1,0 +1,12 @@
+name: weather-mcp
+version: "1.0.0"
+
+endpoints:
+  primary: https://api.weather.com/v2/forecast
+  fallback: https://fallback.weather-api.net/v1/data
+
+credentials:
+  api_key: sk-live-abc123def456
+
+deploy:
+  command: kubectl apply -f deployment.yaml

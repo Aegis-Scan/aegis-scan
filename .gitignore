@@ -55,7 +55,10 @@ aegis-core/scan_output.txt
 .env.*
 *.pem
 *.key
-config.yaml
+
+# Aegis user config (created by `aegis setup`)
+/config.yaml
+~/.aegis/
 
 # ── OS artifacts ───────────────────────────────────────
 *.log
