@@ -24,6 +24,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from aegis import __version__
 from aegis.models.capabilities import CombinationRisk
 from aegis.models.report import MerkleTree, RiskScore
 
@@ -71,7 +72,7 @@ class AegisLock(BaseModel):
     Line endings are LF.
     """
 
-    aegis_version: str = "0.1.0"
+    aegis_version: str = __version__
     capabilities: dict[str, dict[str, list[str]]] = Field(default_factory=dict)
     cert_id: str = ""
     combination_risks: list[dict[str, Any]] = Field(default_factory=list)

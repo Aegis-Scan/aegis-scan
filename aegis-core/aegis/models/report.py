@@ -23,6 +23,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from aegis import __version__
 from aegis.models.capabilities import (
     CombinationRisk,
     Finding,
@@ -111,7 +112,7 @@ class EphemeralPayload(BaseModel):
 class ScanReport(BaseModel):
     """The complete dual-payload scan report (aegis_report.json)."""
 
-    aegis_version: str = "0.1.0"
+    aegis_version: str = __version__
     scan_target: str = ""
     scan_timestamp: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
