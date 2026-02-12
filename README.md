@@ -1,4 +1,4 @@
-# Aegis Audit
+# Aegis Audit 🦞
 
 **Behavioral security scanner for AI agent skills and MCP tools.**
 
