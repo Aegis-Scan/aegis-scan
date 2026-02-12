@@ -2,7 +2,7 @@
 
 **Behavioral security scanner for AI agent skills and MCP tools.**
 
-> The "SSL certificate" for AI agent skills — scan, certify, and govern MCP tools before you trust them.
+> The "SSL certificate" for AI agent skills — scan, certify, and govern MCP tools and OpenClaw skills before you trust them.
 
 Aegis answers the question every agent user should ask: *"What can this skill actually do, and should I trust it?"*
 
