@@ -1,6 +1,6 @@
 # Aegis Audit 🦞
 
-**Behavioral security scanner for AI agent skills and MCP tools.**
+**Behavioral security scanner for AI agent skills, like on OpenClaw, and MCP tools.**
 
 > The "SSL certificate" for AI agent skills — scan, certify, and govern MCP tools and OpenClaw skills before you trust them.
 
