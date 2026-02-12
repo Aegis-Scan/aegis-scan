@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aegis-audit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Behavioral security scanner for AI agent skills and MCP tools — scan, certify, and govern."
 readme = "README.md"
 license = "AGPL-3.0-or-later"

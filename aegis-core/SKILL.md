@@ -56,44 +56,32 @@ Use Aegis **automatically** whenever:
 Full security audit of a directory. Returns the Vibe Check (persona + risk score), capabilities with scope, findings with CWE IDs, combination risk analysis, trust analysis (SKILL.md vs. code), and machine-readable remediation feedback.
 
 ```
-aegis scan [PATH] [--no-llm] [--json] [--verbose] [--quiet] [--no-semgrep] [--semgrep-rules PATH]
+aegis scan [PATH] [--no-llm] [--json] [-v]
 ```
 
-All commands default to `.` (current directory) when no path is given.
-
-| Flag | Description |
-|---|---|
-| `--no-llm` | Skip LLM analysis (faster, no API cost) |
-| `--json` | Output raw JSON to stdout (for CI pipelines) |
-| `-v`, `--verbose` | Show per-file findings and extra detail |
-| `-q`, `--quiet` | Suppress all output except errors |
-| `--no-semgrep` | Skip bundled Semgrep rules |
-| `--semgrep-rules PATH` | Path to a custom Semgrep rules directory |
+All commands default to `.` (current directory) when no path is given. Common flags: `--no-llm` (skip LLM), `--json` (CI output), `-v` (verbose). Run `aegis scan --help` for full flags.
 
 ### `verify_lockfile`
-Verify an existing `aegis.lock` against current code. Detects any file modifications,
-additions, or deletions since the lockfile was generated.
+Verify an existing `aegis.lock` against current code. Detects any file modifications, additions, or deletions since the lockfile was generated.
 
 ```
-aegis verify [PATH] [--strict] [--json] [--lockfile PATH]
+aegis verify [PATH] [--strict] [--json]
 ```
 
-| Flag | Description |
-|---|---|
-| `--strict` | Bit-for-bit hash check — fail if ANY file changed (including whitespace) |
-| `--json` | Output verification result as JSON |
-| `--lockfile PATH` | Path to `aegis.lock` (default: `<path>/aegis.lock`) |
+Run `aegis verify --help` for full flags.
 
 ### `list_capabilities`
 Lightweight capability extraction without full vulnerability analysis. Fast way to see
 what a skill can do without computing risk scores or hashes.
 
-### Other commands
+### Commands
 
 | Command | Description |
-|---|---|
-| `aegis lock [PATH]` | Scan + generate signed `aegis.lock` (use `--force` for CRITICAL risk) |
-| `aegis badge [PATH]` | Generate a shields.io badge for your README |
+|---------|-------------|
+| `aegis scan [path]` | Full security scan with risk scoring |
+| `aegis lock [path]` | Scan + generate signed `aegis.lock` |
+| `aegis verify [path]` | Verify lockfile against current code |
+| `aegis badge [path]` | Generate shields.io badge markdown |
 | `aegis setup` | Interactive LLM configuration wizard |
 | `aegis mcp-serve` | Start the MCP server (stdio transport) |
 | `aegis mcp-config` | Print MCP config JSON for Cursor / Claude Desktop |
@@ -153,7 +141,7 @@ Walks you through provider selection (Gemini, Claude, OpenAI, or local server), 
 Set one of these and Aegis picks it up automatically (env vars take priority over config):
 
 | Variable | Provider |
-|---|---|
+|----------|----------|
 | `GEMINI_API_KEY` | Google Gemini |
 | `OPENAI_API_KEY` | OpenAI |
 | `ANTHROPIC_API_KEY` | Anthropic Claude |
@@ -166,7 +154,7 @@ Set one of these and Aegis picks it up automatically (env vars take priority ove
 Aegis analyzes **all** files in a skill directory:
 
 | Scanner | What It Detects |
-|---|---|
+|---------|-----------------|
 | **AST Parser** | 750+ Python function/method patterns across 15+ capability categories |
 | **Semgrep Rules** | 80+ regex rules for Python, JavaScript, and generic secrets |
 | **Secret Scanner** | API keys, tokens, private keys, connection strings (30+ patterns) |
@@ -183,71 +171,85 @@ Aegis analyzes **all** files in a skill directory:
 | **Skill Meta Analyzer** | SKILL.md vs. actual code cross-referencing (trust analysis) |
 | **Persona Classifier** | Overall trust profile (LGTM, Permission Goblin, Trust Me Bro, etc.) |
 
+## Vibe Check Personas
+
+Aegis assigns each scanned skill a persona based on deterministic analysis. No LLM required.
+
+**🔥 Cracked Dev**  
+10x engineer energy. Clean code, smart patterns, minimal permissions. The kind of skill you'd want to maintain.
+
+**✅ LGTM**  
+Looks good to me. Permissions match the intent, scopes are sane, nothing weird. Ship it.
+
+**🍌 Trust Me Bro**  
+Polished on the outside, suspicious on the inside. Docs vs code mismatch or unusual permissions. Trust, but verify.
+
+**🤔 You Sure About That?**  
+The intern special. Messy code, missing pieces, docs that overpromise. No malicious intent, but it needs a real review.
+
+**💕 Co-Dependent Lover**  
+Tiny logic, huge dependency tree. Loves node_modules. Supply chain risk is real here.
+
+**👺 Permission Goblin**  
+Wants everything: filesystem, network, secrets, the kitchen sink. Over-scoped and worth a closer look.
+
+**🍝 Spaghetti Monster**  
+Unreadable chaos. High complexity, hard to follow. Good luck auditing this.
+
+**🐍 The Snake**  
+Warning: This code might look clean, but it isn't. Do not use this skill, it is malicious by design.
+
 ## Example Output
 
-A high-risk skill with browser automation, credential access, and network calls:
+**With LLM and verbose** (`aegis scan -v`):
 
 ```
-┌─ Aegis Security Audit ──────────────────────────────────────────────────┐
-│ AEGIS SECURITY AUDIT                                                    │
-│   Target: ./my-skill                                                    │
-│   Files:  1 (1 Python)                                                  │
-│   Source: directory                                                      │
-│   Mode:   AST-only                                                      │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Vibe Check ────────────────────────────────────────────────────────────┐
-│   [*]  LGTM                                                             │
-│                                                                          │
-│   ###################-  95/100 - HIGH RISK - review carefully            │
-│                                                                          │
-│   Aegis scored this skill 95/100. The most notable finding:              │
-│   3 capability combination(s) where permissions reinforce each other     │
-│   in ways that could be misused. Aegis flagged 3 possible hardcoded     │
-│   secret(s).                                                             │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Capabilities (3) ──────────────────────────────────────────────────────┐
-│   BROWSER: can control                                                   │
-│     Scope: * (unresolved)                                                │
-│                                                                          │
-│   NETWORK: can make outbound connections                                 │
-│     Scope: *, https://shop.example.com/api/check                         │
-│                                                                          │
-│   SECRET: can access stored credentials                                  │
-│     Scope: *, shopping                                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ What Could Go Wrong ──────────────────────────────────────────────────┐
-│   1. Credential theft: the skill can read stored secrets and send data  │
-│   over the network.                                                      │
-│                                                                          │
-│   2. Session hijacking: the skill controls a web browser and can        │
-│   interact with your active sessions as if it were you.                  │
-└─────────────────────────────────────────────────────────────────────────┘
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│ AEGIS SECURITY AUDIT                                        │
+│   Target: ./my-skill                                        │
+│   Files:  8 (3 Python, 1 config, 4 other)                   │
+│   Mode:   AST + LLM (gemini)                                │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                   │
+│   The intern special. Messy code, missing pieces,           │
+│   docs that overpromise. No malicious intent, but it        │
+│   needs a real review.                                      │
+│   ####----------------  22/100 - LOW - minor observations   │
+│   only                                                      │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Trust Analysis ────────────────────────────────────────────╮
+│   [ALERT]  The description claims capabilities that don't   │
+│   match what the code provides - 5 mismatch(es) found.      │
+│   [ALERT]  SKILL.md references 13 file(s) that don't exist  │
+│   in the package.                                           │
+╰─────────────────────────────────────────────────────────────╯
 ```
 
-When prohibited patterns like `eval()` or `exec()` are found, Aegis blocks certification entirely:
+**AST-only** (no LLM, `aegis scan --no-llm`):
 
 ```
-┌─ Prohibited Patterns ──────────────────────────────────────────────────┐
-│   [ALERT]  BLOCKED — This skill cannot be certified.                    │
-│                                                                          │
-│   [ALERT]  main.py line 8 in process_input()  CWE-95                    │
-│      | result = eval(user_data)                                          │
-│      -> Remove dynamic code execution. Use ast.literal_eval().           │
-└─────────────────────────────────────────────────────────────────────────┘
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│   Mode:   AST-only                                          │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                   │
+│   ####----------------  22/100 - LOW                         │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Scan Complete ─────────────────────────────────────────────╮
+│   Report: ./aegis_report.json                                │
+│   Run aegis lock to generate a signed lockfile.              │
+╰─────────────────────────────────────────────────────────────╯
 ```
 
-A clean, low-risk scan:
+**When prohibited patterns are found** (Aegis blocks certification):
 
 ```
-┌─ Vibe Check ────────────────────────────────────────────────────────────┐
-│   ####────────────────  22/100 - LOW - minor observations only           │
-│                                                                          │
-│   Aegis scored this skill 22/100. The code requests minimal permissions  │
-│   and nothing looks unusual.                                             │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Findings ──────────────────────────────────────────────────────────────┐
-│   [OK]  Permissions: minimal. No high-risk API usage detected.           │
-└─────────────────────────────────────────────────────────────────────────┘
+╭─ Prohibited Patterns ────────────────────────────────────────╮
+│   [ALERT]  BLOCKED — This skill cannot be certified.         │
+│   [ALERT]  main.py line 8  CWE-95  eval(user_data)           │
+│   [ALERT]  main.py line 15 CWE-95  exec(code)                │
+╰─────────────────────────────────────────────────────────────╯
 ```
 
 ## Protocol

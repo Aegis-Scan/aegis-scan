@@ -1,8 +1,8 @@
-# Aegis Audit
+# Aegis Audit 🦞
 
-**Behavioral security scanner for AI agent skills and MCP tools.**
+**Behavioral security scanner for AI agent skills, like on OpenClaw, and MCP tools.**
 
-> The "SSL certificate" for AI agent skills — scan, certify, and govern MCP tools before you trust them.
+> The "SSL certificate" for AI agent skills — scan, certify, and govern before you trust.
 
 Aegis answers the question every agent user should ask: *"What can this skill actually do, and should I trust it?"*
 
@@ -91,10 +91,8 @@ Checks that the current code matches the signed `aegis.lock`. If any file was mo
 
 ## CLI Reference
 
-### Commands
-
 | Command | Description |
-|---|---|
+|---------|-------------|
 | `aegis scan [path]` | Full security scan with risk scoring |
 | `aegis lock [path]` | Scan + generate signed `aegis.lock` |
 | `aegis verify [path]` | Verify lockfile against current code |
@@ -104,45 +102,7 @@ Checks that the current code matches the signed `aegis.lock`. If any file was mo
 | `aegis mcp-config` | Print MCP config JSON for Cursor / Claude Desktop |
 | `aegis version` | Show the Aegis version |
 
-All commands that take `[path]` default to `.` (current directory).
-
-### `aegis scan` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--verbose` | `-v` | Show per-file findings and extra detail |
-| `--json` | | Output raw JSON to stdout (for CI pipelines) |
-| `--quiet` | `-q` | Suppress all output except errors |
-| `--no-llm` | | Skip LLM analysis (faster, no API cost) |
-| `--no-semgrep` | | Skip bundled Semgrep rules |
-| `--semgrep-rules PATH` | | Path to a custom Semgrep rules directory |
-
-### `aegis lock` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--force` | | Generate lockfile even at CRITICAL risk |
-| `--verbose` | `-v` | Show per-file findings and extra detail |
-| `--json` | | Output raw JSON to stdout |
-| `--quiet` | `-q` | Suppress all output except errors |
-| `--no-llm` | | Skip LLM analysis |
-| `--no-semgrep` | | Skip bundled Semgrep rules |
-| `--semgrep-rules PATH` | | Path to a custom Semgrep rules directory |
-
-### `aegis verify` flags
-
-| Flag | Description |
-|---|---|
-| `--lockfile PATH` | Path to `aegis.lock` (default: `<path>/aegis.lock`) |
-| `--strict` | Bit-for-bit hash check — fail if ANY file changed (including whitespace) |
-| `--json` | Output verification result as JSON |
-
-### `aegis badge` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--output` | `-o` | Write badge markdown to a file instead of stdout |
-| `--llm / --no-llm` | | Include or skip LLM analysis (default: skip for speed) |
+All commands that take `[path]` default to `.` (current directory). Common flags: `--no-llm` (skip LLM), `--json` (CI output), `-v` (verbose). Run `aegis scan --help` (or `aegis lock --help`, etc.) for full flags.
 
 ---
 
@@ -185,103 +145,334 @@ See [`aegis-core/README.md`](./aegis-core/README.md) for the full list of model 
 
 ---
 
+We've established personas for code repositories that run with our deterministic checks, no LLM is required. Get to know our code personas:
+
+## Vibe Check Personas
+
+Aegis assigns each scanned skill a persona based on deterministic analysis. The Vibe Check shows one of these:
+
+**🔥 Cracked Dev**  
+10x engineer energy. Clean code, smart patterns, minimal permissions. The kind of skill you'd want to maintain.
+
+**✅ LGTM**  
+Looks good to me. Permissions match the intent, scopes are sane, nothing weird. Ship it.
+
+**🍌 Trust Me Bro**  
+Polished on the outside, suspicious on the inside. Docs vs code mismatch or unusual permissions. Trust, but verify.
+
+**🤔 You Sure About That?**  
+The intern special. Messy code, missing pieces, docs that overpromise. No malicious intent, but it needs a real review.
+
+**💕 Co-Dependent Lover**  
+Tiny logic, huge dependency tree. Loves node_modules. Supply chain risk is real here.
+
+**👺 Permission Goblin**  
+Wants everything: filesystem, network, secrets, the kitchen sink. Over-scoped and worth a closer look.
+
+**🍝 Spaghetti Monster**  
+Unreadable chaos. High complexity, hard to follow. Good luck auditing this.
+
+**🐍 The Snake**  
+Warning: This code might look clean, but it isn't. Do not use this skill, it is malicious by design.
+
+---
+
 ## Example Output
 
-This is actual Aegis output from scanning a skill with browser automation, credential access, and network calls:
+**This is actual Aegis output from scanning a skill, this is with the llm set-up and the --verbose details.**
+This is the actual OpenClaw skill that I used for this test: https://clawhub.ai/alirezarezvani/senior-data-scientist
 
 ```
-┌─ Aegis Security Audit ──────────────────────────────────────────────────┐
-│ AEGIS SECURITY AUDIT                                                    │
-│   Target: ./my-skill                                                    │
-│   Files:  1 (1 Python)                                                  │
-│   Source: directory                                                      │
-│   Mode:   AST-only                                                      │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Vibe Check ────────────────────────────────────────────────────────────┐
-│   [*]  LGTM                                                             │
-│   Looks good to me. Permissions match the intent, scopes are sane,      │
-│   nothing weird. Ship it.                                                │
-│                                                                          │
-│   ###################-  95/100 - HIGH RISK - review carefully            │
-│                                                                          │
-│   Aegis scored this skill 95/100. That is high because the permissions   │
-│   it requests are broad relative to what the code and documentation      │
-│   justify. The most notable finding: 3 capability combination(s) where   │
-│   permissions reinforce each other in ways that could be misused.        │
-│   Aegis flagged 3 possible hardcoded secret(s).                          │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Findings Summary ──────────────────────────────────────────────────────┐
-│   Found 3 capability-related finding(s) in 1 file(s).                   │
-│   Categories: browser: 1, network: 2                                    │
-│                                                                          │
-│   Aegis also flagged 3 string(s) that look like hardcoded secrets.      │
-│   Full technical details are in aegis_report.json.                       │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Capabilities (3) ──────────────────────────────────────────────────────┐
-│   BROWSER: can control                                                   │
-│     Scope: * (unresolved)                                                │
-│                                                                          │
-│   NETWORK: can make outbound connections                                 │
-│     Scope: *, https://shop.example.com/api/check                         │
-│                                                                          │
-│   SECRET: can access stored credentials                                  │
-│     Scope: *, shopping                                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ What Could Go Wrong ──────────────────────────────────────────────────┐
-│   1. Credential theft: the skill can read stored secrets and send data  │
-│   over the network. A compromised version could silently exfiltrate     │
-│   your API keys and tokens in a single HTTP request.                    │
-│                                                                          │
-│   2. Session hijacking: the skill controls a web browser. If you are    │
-│   logged into any website, it can interact with your active sessions    │
-│   as if it were you.                                                     │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Scan Complete ─────────────────────────────────────────────────────────┐
-│   Report:   ./my-skill/aegis_report.json                                │
-│   This was a read-only scan. Run aegis lock to generate a signed        │
-│   lockfile.                                                              │
-└─────────────────────────────────────────────────────────────────────────┘
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│ AEGIS SECURITY AUDIT                                        │
+│   Target: C:\Users\TEST                                     │
+│   Files:  8 (3 Python, 1 config, 4 other)                   │
+│   Source: directory                                         │
+│   Mode:   AST + LLM (gemini)                                │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                  │
+│   The intern special. Messy code, missing pieces,           │
+│   docs that overpromise. No malicious intent, but it        │
+│   needs a real review.                                      │
+│                                                             │
+│   ####----------------  22/100 - LOW - minor observations   │
+|   only                                                      │
+│                                                             │
+│   Aegis scored this skill 22/100. The code requests         │
+│   minimal permissions and nothing looks unusual. The        │
+│   documentation makes claims that don't align with what     │
+│   Aegis found in the actual code. This mismatch is the      │
+│   most important thing to investigate. Messy code: 1        │
+│   missing file ref(s); docs claim production-grade but      │
+│   code is minimal. No malicious intent detected, but this   │
+│   needs a code review.                                      │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Trust Analysis ────────────────────────────────────────────╮
+│   Aegis cross-referenced SKILL.md against the actual        │
+│   code.                                                     │
+│                                                             │
+│   [ALERT]  The description claims                           │
+│   capabilities that don't match what the code provides -    │
+│   5 mismatch(es) found.                                     │
+│      Claimed cloud: aws, gcp, azure                         │
+│      Cloud CLIs in code: none                               │
+│      Claimed containers: docker, kubernetes, k8s,           │
+│      helm, deployment                                       │
+│      Container files in manifest: none                      │
+│      ... and 2 more                                         │
+│      -> This mismatch suggests the skill either             │
+│      won't work as advertised without extra setup that      │
+│      isn't included, or the description is overstating      │
+│      what the skill actually does. Either way, the          │
+│      skill's documentation is not trustworthy               │
+│      as-is.                                                 │
+│                                                             │
+│   [ALERT]  The SKILL.md references                          │
+│   13 file(s) or path(s) that don't exist in the package.    │
+│      Files referenced but missing: ./charts/,               │
+│      config.yaml, data/, k8s/, prod.yaml, project/,         │
+│      results/, scripts/, scripts/evaluate.py,               │
+│      scripts/health_check.py                                │
+│      Files referenced and present:                          │
+│      references/experiment_design_frameworks.md,            │
+│      references/feature_engineering_patterns.md,            │
+│      references/statistical_methods_advanced.md,            │
+│      scripts/experiment_designer.py,                        │
+│      scripts/feature_engineering_pipeline.py                │
+│      Commands referenced: aws, bash, docker, go,            │
+│      helm, kubectl, pytest, python                          │
+│      -> This means the instructions will cause              │
+│      the AI agent to look for files that aren't there.      │
+│      The agent may then try to find them elsewhere on       │
+│      your system, download them, or create them - all of    │
+│      which happen outside the skill's controlled            │
+│      scope                                                  │
+│                                                             │
+│   [WARN]  The skill advertises                              │
+│   credential-heavy integrations but declares no required    │
+│   credentials.                                              │
+│      Integrations needing credentials: aws, gcp,            │
+│      azure, postgres, postgresql, database, prometheus,     │
+│      monitoring                                             │
+│      Code reads secrets: no                                 │
+│      Code reads env vars: no                                │
+│                                                             │
+│   [OK]  Typical configuration -                             │
+│   not always-on, not force-installed.                       │
+│                                                             │
+│   [INFO]  No formal install spec,                           │
+│   but the package includes 3 executable script(s).          │
+│      Python scripts: 3                                      │
+│      Shell scripts: 0                                       │
+│                                                             │
+│   [INFO]  No tool declarations to                           │
+│   verify; code doesn't invoke external binaries.            │
+│      No declared or detected binaries                       │
+╰─────────────────────────────────────────────────────────────╯
+╭──────────────────────── AI Analysis ────────────────────────╮
+│   I'm looking at the rap sheet here—three counts of         │
+│   `system:sysinfo` with unresolved scopes—but the actual    │
+│   code snippets seem to be missing from the dossier! That   │
+│   puts me in a bit of a bind for a full forensic            │
+│   analysis. However, looking purely at the metadata:        │
+│   triggering `system:sysinfo` with an `UNRESOLVED` scope    │
+│   usually means the code is accessing system details        │
+│   (like `os.uname()`, `platform.system()`, or               │
+│   `sys.platform`) via dynamic methods (like                 │
+│   `getattr(platform, var)`) rather than direct calls.       │
+│                                                             │
+│   While system fingerprinting is often step one for         │
+│   malware (to tailor the payload), it's also common in      │
+│   legitimate cross-platform tools. Without seeing the       │
+│   code, I can't confirm if this is clever engineering or    │
+│   an evasion attempt, but purely accessing system info is   │
+│   generally low-risk compared to file or network access.    │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Findings ──────────────────────────────────────────────────╮
+│   [OK]  Permissions: minimal. No                            │
+│   high-risk API usage detected.                             │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Capabilities ──────────────────────────────────────────────╮
+│   Permissions: minimal. No high-risk APIs (network,         │
+│   subprocess, credentials) detected. See                    │
+│   aegis_report.json.                                        │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Before You Install ────────────────────────────────────────╮
+│   1.  Pin to a specific version: install                    │
+│   from a tagged release or commit hash, not 'latest'.       │
+│   2.  Check the developer's reputation: look                │
+│   at their profile, other published skills, and community   │
+│   activity.                                                 │
+│   3.  Read the SKILL.md: confirm the skill                  │
+│   does what you need and the documentation matches the      │
+│   code.                                                     │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Verbose Risk Briefs ───────────────────────────────────────╮
+│ Credential & secret access                                  │
+│   None detected. No hardcoded secrets, credential-store     │
+│   access, or env-var reads found.                           │
+│                                                             │
+│ Program execution                                           │
+│   None detected. No subprocess, shell, or external binary   │
+│   invocations found.                                        │
+│                                                             │
+│ System-level access                                         │
+│   None detected. No platform/sysinfo calls or signal        │
+│   handlers found.                                           │
+│                                                             │
+│ Supply chain risk                                           │
+│   None detected. No combination of subprocess +             │
+│   unrecognized binaries.                                    │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Combination Risks ─────────────────────────────────────────╮
+│   No dangerous capability combinations detected.            │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ External Programs ─────────────────────────────────────────╮
+│   No external programs invoked.                             │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Sensitive Path Violations ─────────────────────────────────╮
+│   No sensitive path violations.                             │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Scan Complete ─────────────────────────────────────────────╮
+│   Report:                                                   │
+│   C:\Users\TEST\aegis_report.json                           │
+│   This was a read-only scan. Run aegis                      │
+│   lock to generate a signed lockfile.                       │
+╰─────────────────────────────────────────────────────────────╯
+
 ```
 
-A clean, low-risk scan looks like this:
+**Here is an example of the scan with no AI enabled:**
 
 ```
-┌─ Vibe Check ────────────────────────────────────────────────────────────┐
-│   [*]  You Sure About That?                                              │
-│   The intern special. Messy code, missing pieces, docs that              │
-│   overpromise. No malicious intent, but it needs a real review.          │
-│                                                                          │
-│   ####────────────────  22/100 - LOW - minor observations only           │
-│                                                                          │
-│   Aegis scored this skill 22/100. The code requests minimal permissions  │
-│   and nothing looks unusual.                                             │
-└─────────────────────────────────────────────────────────────────────────┘
-┌─ Findings ──────────────────────────────────────────────────────────────┐
-│   [OK]  Permissions: minimal. No high-risk API usage detected.           │
-└─────────────────────────────────────────────────────────────────────────┘
-```
 
-And when prohibited patterns are found, Aegis blocks certification:
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│ AEGIS SECURITY AUDIT                                        │
+│   Target: C:\Users\TEST                                     │
+│   Files:  8 (3 Python, 1 config, 4 other)                   │
+│   Source: directory                                         │
+│   Mode:   AST-only                                          │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                  │
+│   The intern special. Messy code, missing pieces,           │
+│   docs that overpromise. No malicious intent, but it        │
+│   needs a real review.                                      │
+│                                                             │
+│   ####----------------  22/100 - LOW - minor observations   │
+│   only                                                      │
+│                                                             │
+│   Aegis scored this skill 22/100. The code requests         │
+│   minimal permissions and nothing looks unusual. The        │
+│   documentation makes claims that don't align with what     │
+│   Aegis found in the actual code. This mismatch is the      │
+│   most important thing to investigate. Messy code: 1        │
+│   missing file ref(s); docs claim production-grade but      │
+│   code is minimal. No malicious intent detected, but this   │
+│   needs a code review.                                      │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Trust Analysis ────────────────────────────────────────────╮
+│   Aegis cross-referenced SKILL.md against the actual        │
+│   code.                                                     │
+│                                                             │
+│   [ALERT]  The description claims                           │
+│   capabilities that don't match what the code provides -    │
+│   5 mismatch(es) found.                                     │
+│      Claimed cloud: aws, gcp, azure                         │
+│      Cloud CLIs in code: none                               │
+│      Claimed containers: docker, kubernetes, k8s,           │
+│      helm, deployment                                       │
+│      Container files in manifest: none                      │
+│      ... and 2 more                                         │
+│      -> This mismatch suggests the skill either             │
+│      won't work as advertised without extra setup that      │
+│      isn't included, or the description is overstating      │
+│      what the skill actually does. Either way, the          │
+│      skill's documentation is not trustworthy               │
+│      as-is.                                                 │
+│                                                             │
+│   [ALERT]  The SKILL.md references                          │
+│   13 file(s) or path(s) that don't exist in the package.    │
+│      Files referenced but missing: ./charts/,               │
+│      config.yaml, data/, k8s/, prod.yaml, project/,         │
+│      results/, scripts/, scripts/evaluate.py,               │
+│      scripts/health_check.py                                │
+│      Files referenced and present:                          │
+│      references/experiment_design_frameworks.md,            │
+│      references/feature_engineering_patterns.md,            │
+│      references/statistical_methods_advanced.md,            │
+│      scripts/experiment_designer.py,                        │
+│      scripts/feature_engineering_pipeline.py                │
+│      Commands referenced: aws, bash, docker, go,            │
+│      helm, kubectl, pytest, python                          │
+│      -> This means the instructions will cause              │
+│      the AI agent to look for files that aren't there.      │
+│      The agent may then try to find them elsewhere on       │
+│      your system, download them, or create them - all of    │
+│      which happen outside the skill's controlled            │
+│      scope                                                  │
+│                                                             │
+│   [WARN]  The skill advertises                              │
+│   credential-heavy integrations but declares no required    │
+│   credentials.                                              │
+│      Integrations needing credentials: aws, gcp,            │
+│      azure, postgres, postgresql, database, prometheus,     │
+│      monitoring                                             │
+│      Code reads secrets: no                                 │
+│      Code reads env vars: no                                │
+│                                                             │
+│   [OK]  Typical configuration -                             │
+│   not always-on, not force-installed.                       │
+│                                                             │
+│   [INFO]  No formal install spec,                           │
+│   but the package includes 3 executable script(s).          │
+│      Python scripts: 3                                      │
+│      Shell scripts: 0                                       │
+│                                                             │
+│   [INFO]  No tool declarations to                           │
+│   verify; code doesn't invoke external binaries.            │
+│      No declared or detected binaries                       │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Findings ──────────────────────────────────────────────────╮
+│   [OK]  Permissions: minimal. No                            │
+│   high-risk API usage detected.                             │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Capabilities ──────────────────────────────────────────────╮
+│   Permissions: minimal. No high-risk APIs (network,         │
+│   subprocess, credentials) detected. See                    │
+│   aegis_report.json.                                        │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Before You Install ────────────────────────────────────────╮
+│   1.  Pin to a specific version: install                    │
+│   from a tagged release or commit hash, not 'latest'.       │
+│   2.  Check the developer's reputation: look                │
+│   at their profile, other published skills, and community   │
+│   activity.                                                 │
+│   3.  Read the SKILL.md: confirm the skill                  │
+│   does what you need and the documentation matches the      │
+│   code.                                                     │
+╰─────────────────────────────────────────────────────────────╯
+
+╭─ Scan Complete ─────────────────────────────────────────────╮
+│   Report:                                                   │
+│   C:\Users\mhube\aegis_report.json                          │
+│   This was a read-only scan. Run aegis                      │
+│   lock to generate a signed lockfile.                       │
+╰─────────────────────────────────────────────────────────────╯
 
 ```
-┌─ Prohibited Patterns ──────────────────────────────────────────────────┐
-│   [ALERT]  BLOCKED — This skill cannot be certified.                    │
-│                                                                          │
-│   [ALERT]  main.py line 8 in process_input()  CWE-95                    │
-│      | result = eval(user_data)                                          │
-│      Pattern: eval                                                       │
-│      eval() executes any Python expression passed as a string.           │
-│      -> Remove dynamic code execution. Use ast.literal_eval() for        │
-│      safe data parsing.                                                  │
-│                                                                          │
-│   [ALERT]  main.py line 15 in load_plugin()  CWE-95                     │
-│      | exec(code)                                                        │
-│      Pattern: exec                                                       │
-│      exec() runs arbitrary Python code from a string.                    │
-│      -> Remove exec(). Refactor to use explicit function calls.          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
 ---
 
 ## What Gets Scanned
