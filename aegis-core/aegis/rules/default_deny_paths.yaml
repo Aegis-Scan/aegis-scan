@@ -1,0 +1,85 @@
+# Default deny paths — always flagged for fs:write operations.
+# These represent sensitive filesystem locations that should never
+# be written to by agent skills without explicit policy approval.
+
+deny_paths:
+  # Cryptographic identity
+  - "~/.ssh/*"
+  - "~/.gnupg/*"
+  - "~/.pki/*"
+
+  # Shell configuration
+  - "~/.bashrc"
+  - "~/.zshrc"
+  - "~/.profile"
+  - "~/.bash_profile"
+  - "~/.bash_login"
+  - "~/.bash_logout"
+  - "~/.zprofile"
+  - "~/.zlogin"
+  - "~/.zlogout"
+  - "~/.cshrc"
+  - "~/.tcshrc"
+  - "~/.fishrc"
+  - "~/.config/fish/*"
+
+  # Cloud credentials
+  - "~/.aws/*"
+  - "~/.kube/*"
+  - "~/.azure/*"
+  - "~/.config/gcloud/*"
+  - "~/.terraform.d/*"
+  - "~/.helm/*"
+
+  # Container / CI credentials
+  - "~/.docker/*"
+  - "~/.config/containers/*"
+
+  # Auth tokens / package manager credentials
+  - "~/.gitconfig"
+  - "~/.git-credentials"
+  - "~/.netrc"
+  - "~/.npmrc"
+  - "~/.pypirc"
+  - "~/.gem/credentials"
+  - "~/.cargo/credentials"
+  - "~/.config/pip/*"
+  - "~/.local/share/python_keyring/*"
+
+  # IDE / editor configs (can inject code via settings)
+  - "~/.vscode/*"
+  - "~/.cursor/*"
+
+  # System configuration (Linux/macOS)
+  - "/etc/*"
+  - "/root/*"
+  - "/boot/*"
+  - "/usr/lib/*"
+  - "/usr/bin/*"
+  - "/usr/sbin/*"
+  - "/var/spool/cron/*"
+  - "/var/spool/crontab/*"
+
+  # Systemd / init
+  - "/etc/systemd/*"
+  - "/lib/systemd/*"
+  - "/etc/init.d/*"
+  - "/etc/cron.d/*"
+
+  # macOS-specific
+  - "~/Library/LaunchAgents/*"
+  - "~/Library/LaunchDaemons/*"
+  - "/Library/LaunchAgents/*"
+  - "/Library/LaunchDaemons/*"
+
+  # Windows-specific
+  - "C:\\Windows\\*"
+  - "C:\\Windows\\System32\\*"
+  - "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\*"
+  - "%USERPROFILE%\\.ssh\\*"
+  - "%USERPROFILE%\\.aws\\*"
+  - "%USERPROFILE%\\.kube\\*"
+  - "%USERPROFILE%\\.azure\\*"
+  - "%USERPROFILE%\\.docker\\*"
+  - "%USERPROFILE%\\.gitconfig"
+  - "%USERPROFILE%\\.npmrc"

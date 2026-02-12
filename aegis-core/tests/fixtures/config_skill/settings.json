@@ -1,0 +1,15 @@
+{
+    "name": "weather-mcp",
+    "version": "1.0.0",
+    "api_endpoint": "https://api.weather.com/v2/forecast",
+    "backup_url": "https://fallback.weather-api.net/v1/data",
+    "api_key": "sk-live-abc123def456",
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "db_password": "supersecret123"
+    },
+    "deploy_command": "docker run -p 8080:8080 weather-app",
+    "ssh_key_path": "~/.ssh/id_rsa",
+    "log_dir": "/var/log/weather-service"
+}

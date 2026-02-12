@@ -1,0 +1,243 @@
+rules:
+  # ── XSS ──
+  - id: js-xss-innerhtml
+    pattern-regex: '\.innerHTML\s*='
+    message: >
+      XSS risk: Direct innerHTML assignment. Use textContent for plain text
+      or a sanitization library like DOMPurify for HTML.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+      aegis_capability: "browser:inject"
+
+  - id: js-xss-document-write
+    pattern-regex: 'document\.write\s*\('
+    message: >
+      XSS risk: document.write() is inherently unsafe.
+      Use DOM manipulation methods instead.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+      aegis_capability: "browser:inject"
+
+  - id: js-xss-outerhtml
+    pattern-regex: '\.outerHTML\s*='
+    message: >
+      XSS risk: Direct outerHTML assignment can inject malicious scripts.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+
+  - id: js-xss-insertadjacenthtml
+    pattern-regex: '\.insertAdjacentHTML\s*\('
+    message: >
+      XSS risk: insertAdjacentHTML can inject unsanitized HTML.
+      Sanitize input with DOMPurify before insertion.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+
+  # ── SQL Injection ──
+  - id: js-sql-injection-template
+    pattern-regex: '(query|execute|raw)\s*\(\s*`'
+    message: >
+      SQL injection via template literal in query. Use parameterized queries.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021"]
+      aegis_capability: "network:connect"
+
+  - id: js-sql-injection-concat
+    pattern-regex: '(query|execute)\s*\(\s*["\x27].*\+\s*(req|user|input|params|body)\b'
+    message: >
+      SQL injection via string concatenation with user input.
+      Use parameterized queries or an ORM.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021"]
+
+  # ── Prototype Pollution ──
+  - id: js-prototype-pollution-merge
+    pattern-regex: '(Object\.assign|_\.merge|_\.extend|_\.defaults|_\.defaultsDeep)\s*\(\s*\{\}'
+    message: >
+      Potential prototype pollution via recursive merge with user-controlled input.
+      Validate input keys and use Object.create(null) for target objects.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-1321"]
+
+  - id: js-prototype-pollution-proto
+    pattern-regex: '__proto__|constructor\s*\['
+    message: >
+      Prototype pollution: direct __proto__ or constructor access detected.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-1321"]
+
+  # ── JWT Security ──
+  - id: js-jwt-none-algorithm
+    pattern-regex: 'algorithm[s]?\s*[:=]\s*["\x27]none["\x27]'
+    message: >
+      JWT with 'none' algorithm allows forged tokens.
+      Always specify a strong algorithm (RS256, ES256).
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-347"]
+      aegis_capability: "crypto:sign"
+
+  - id: js-jwt-weak-secret
+    pattern-regex: 'jwt\.sign\s*\([^,]+,\s*["\x27][^"\x27]{1,15}["\x27]'
+    message: >
+      JWT signed with a weak/short secret. Use a strong random key (256+ bits).
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-326"]
+
+  # ── Command Injection ──
+  - id: js-command-injection-exec
+    pattern-regex: 'child_process\.(exec|execSync)\s*\(\s*`'
+    message: >
+      Command injection via template literal in child_process.exec.
+      Use execFile with arguments array instead.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-78"]
+      aegis_capability: "subprocess:exec"
+
+  - id: js-command-injection-concat
+    pattern-regex: 'child_process\.(exec|execSync)\s*\(\s*["\x27].*\+\s*(req|user|input|params|body)\b'
+    message: >
+      Command injection via string concatenation with user input.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-78"]
+      aegis_capability: "subprocess:exec"
+
+  # ── eval() ──
+  - id: js-eval-usage
+    pattern-regex: '\beval\s*\('
+    message: >
+      eval() executes arbitrary code — avoid it entirely.
+      Use JSON.parse() for data, or Function constructor if absolutely needed.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-95"]
+
+  # ── Hardcoded Secrets ──
+  - id: js-hardcoded-password
+    pattern-regex: '(password|passwd|secret|apiKey|api_key)\s*[:=]\s*["\x27][^"\x27]{8,}["\x27]'
+    message: >
+      Hardcoded credential detected. Use environment variables or a secrets manager.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-798"]
+      aegis_capability: "secret:access"
+
+  # ── Open Redirect ──
+  - id: js-open-redirect
+    pattern-regex: '(res\.redirect|window\.location|location\.href)\s*[=(]\s*(req\.(query|params|body)|user_input)'
+    message: >
+      Open redirect: user-controlled redirect destination.
+      Validate redirect URLs against a whitelist of allowed domains.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-601"]
+      owasp: ["A01:2021"]
+
+  # ── Timer-based Code Execution ──
+  - id: js-settimeout-string
+    pattern-regex: 'setTimeout\s*\(\s*["\x27`]'
+    message: >
+      setTimeout() with a string argument executes it as code (like eval).
+      Pass a function reference instead: setTimeout(() => { ... }, delay).
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-95"]
+
+  - id: js-setinterval-string
+    pattern-regex: 'setInterval\s*\(\s*["\x27`]'
+    message: >
+      setInterval() with a string argument executes it as code (like eval).
+      Pass a function reference instead: setInterval(() => { ... }, interval).
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-95"]
+
+  # ── postMessage Without Origin Check ──
+  - id: js-postmessage-wildcard-origin
+    pattern-regex: '\.postMessage\s*\([^)]+,\s*["\x27]\*["\x27]\s*\)'
+    message: >
+      postMessage with wildcard origin "*" sends data to any window.
+      Specify the exact target origin to prevent data leakage.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-345"]
+
+  # ── Framework-Specific XSS ──
+  - id: js-react-dangerouslysetinnerhtml
+    pattern-regex: 'dangerouslySetInnerHTML\s*='
+    message: >
+      dangerouslySetInnerHTML bypasses React's XSS protections. Sanitize
+      all HTML with DOMPurify before rendering. Never pass user input directly.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+      aegis_capability: "browser:inject"
+
+  - id: js-vue-v-html
+    pattern-regex: 'v-html\s*='
+    message: >
+      v-html renders raw HTML and bypasses Vue's XSS protections.
+      Sanitize input with DOMPurify or use v-text for plain text.
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+      aegis_capability: "browser:inject"
+
+  # ── Dynamic Import ──
+  - id: js-dynamic-import-variable
+    pattern-regex: '\bimport\s*\(\s*(req|user|input|params|body|data)\b'
+    message: >
+      Dynamic import() with user-controlled module path can load arbitrary code.
+      Validate and whitelist allowed module paths.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-94"]
+
+  # ── new Function with Template Literal ──
+  - id: js-new-function-template
+    pattern-regex: 'new\s+Function\s*\(\s*`'
+    message: >
+      new Function() with template literal compiles and executes code at
+      runtime. Avoid dynamic code generation with user input.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe: ["CWE-95"]

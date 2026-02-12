@@ -1,0 +1,124 @@
+combination_rules:
+  - id: "automated-purchasing"
+    severity: "critical"
+    match_all:
+      - "browser:control"
+      - "secret:access"
+      - "network:connect"
+    risk_override: 95
+    message: >
+      CRITICAL: This skill/session combines Browser Control + Secret Access +
+      Network Connect, enabling automated purchasing without human approval.
+      Manual policy approval is required before deployment.
+
+  - id: "rce-pipeline"
+    severity: "high"
+    match_all:
+      - "fs:write"
+      - "subprocess:exec"
+      - "network:connect"
+    risk_override: 85
+    message: >
+      HIGH RISK: This skill/session can download content from the network,
+      write it to disk, and execute it. This is a Remote Code Execution pipeline.
+
+  - id: "data-exfiltration"
+    severity: "high"
+    match_all:
+      - "fs:read"
+      - "network:connect"
+    risk_override: 80
+    message: >
+      HIGH RISK: This skill/session can read local files and send data over
+      the network. Potential data exfiltration vector — sensitive files could
+      be read and transmitted to external endpoints.
+
+  - id: "secret-exfiltration"
+    severity: "high"
+    match_all:
+      - "secret:access"
+      - "network:connect"
+    risk_override: 80
+    message: >
+      HIGH RISK: This skill/session can read secrets/credentials and send
+      data over the network. Potential secret exfiltration vector.
+
+  - id: "credential-harvesting"
+    severity: "high"
+    match_all:
+      - "env:read"
+      - "secret:access"
+      - "network:connect"
+    risk_override: 85
+    message: >
+      HIGH RISK: This skill/session reads environment variables, accesses
+      secrets/credentials, and has network connectivity. Full credential
+      harvesting and exfiltration pipeline.
+
+  - id: "crypto-ransomware"
+    severity: "critical"
+    match_all:
+      - "fs:write"
+      - "fs:read"
+      - "crypto:encrypt"
+    risk_override: 90
+    message: >
+      CRITICAL: This skill/session can read files, encrypt data, and write
+      back to the filesystem. This matches a ransomware-style pattern —
+      files could be encrypted in place.
+
+  - id: "persistence-mechanism"
+    severity: "high"
+    match_all:
+      - "fs:write"
+      - "subprocess:exec"
+      - "system:signal"
+    risk_override: 75
+    message: >
+      HIGH RISK: This skill/session can write files, execute processes, and
+      manipulate system signals. Potential persistence mechanism — could
+      install startup scripts or signal handlers.
+
+  - id: "browser-credential-theft"
+    severity: "critical"
+    match_all:
+      - "browser:control"
+      - "secret:access"
+    risk_override: 85
+    message: >
+      CRITICAL: This skill/session combines browser control with secret
+      access. Could extract credentials from browser sessions, autofill
+      data, or cookies.
+
+  - id: "deserialization-rce"
+    severity: "high"
+    match_all:
+      - "serial:deserialize"
+      - "network:connect"
+    risk_override: 80
+    message: >
+      HIGH RISK: This skill/session deserializes data and has network access.
+      Untrusted deserialization from network sources is a classic Remote Code
+      Execution vector (pickle, marshal, YAML, XML).
+
+  - id: "supply-chain-autoload"
+    severity: "high"
+    match_all:
+      - "subprocess:exec"
+    conditions:
+      has_unrecognized_binary: true
+    risk_override: 75
+    message: >
+      HIGH RISK: This skill invokes external binaries not in the default
+      allowlist. Potential supply chain attack via auto-loaded tooling.
+
+  - id: "network-listen-exec"
+    severity: "high"
+    match_all:
+      - "network:listen"
+      - "subprocess:exec"
+    risk_override: 80
+    message: >
+      HIGH RISK: This skill/session opens a network listener and can execute
+      subprocesses. This is a potential backdoor — remote commands could be
+      received and executed.

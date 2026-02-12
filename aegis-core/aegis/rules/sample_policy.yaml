@@ -1,0 +1,55 @@
+# Sample unified policy for use with:  aegis scan <path> --policy aegis/rules/sample_policy.yaml
+#
+# This format is used when you pass --policy to scan or lock. Path violations
+# and binary classification still use the built-in default_deny_paths.yaml and
+# default_deny_binaries.yaml; this file is the schema for custom allow/deny
+# rules (e.g. for evaluate_rule / MCP or when the pipeline wires policy into
+# path checks).
+#
+# Schema:
+#   rules:     list of { id, capability, scope[], action, priority?, message? }
+#   defaults:  { unmatched_action: allow | deny | flag }
+# Scope patterns support fnmatch: * and ?.
+
+defaults:
+  unmatched_action: flag   # allow | deny | flag
+
+rules:
+  # ── Filesystem ──
+  - id: allow-tmp-writes
+    capability: fs:write
+    scope: ["/tmp/*", "./workspace/*", "./output/*"]
+    action: allow
+
+  - id: deny-sensitive-paths
+    capability: fs:write
+    scope: ["~/.ssh/*", "~/.aws/*", "~/.bashrc", "~/.zshrc", "/etc/*"]
+    action: deny
+    priority: 100
+    message: "Writing to sensitive path is denied by policy."
+
+  # ── Network ──
+  - id: allow-weather-api
+    capability: network:connect
+    scope: ["api.weather.com", "*.openweathermap.org", "api.open-meteo.com"]
+    action: allow
+
+  - id: deny-internal-ips
+    capability: network:connect
+    scope: ["10.*", "192.168.*", "172.16.*", "169.254.*"]
+    action: deny
+    priority: 100
+    message: "Connecting to internal/cloud-metadata addresses is denied."
+
+  # ── Subprocess ──
+  - id: allow-git-python
+    capability: subprocess:exec
+    scope: ["git", "python", "python3"]
+    action: allow
+
+  - id: deny-cloud-clis
+    capability: subprocess:exec
+    scope: ["aws", "gcloud", "az", "kubectl", "terraform"]
+    action: deny
+    priority: 90
+    message: "Cloud CLIs are denied by policy (use default_deny_binaries for full list)."

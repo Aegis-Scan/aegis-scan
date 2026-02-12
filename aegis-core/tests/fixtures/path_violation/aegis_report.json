@@ -1,0 +1,348 @@
+{
+  "aegis_version": "0.1.0",
+  "deterministic": {
+    "capabilities": {
+      "fs": {
+        "write": [
+          "*",
+          "~/.bashrc",
+          "/tmp/output.txt"
+        ]
+      },
+      "secret": {
+        "access": [
+          "hardcoded"
+        ]
+      }
+    },
+    "combination_risks": [],
+    "external_binaries": [],
+    "file_count": 1,
+    "manifest_source": "directory",
+    "merkle_tree": {
+      "algorithm": "sha256",
+      "leaves": [
+        {
+          "hash": "sha256:664c88034699d8dbb70c55adeb99943d2f6ec5542ca5064d012e59b4c84d661a",
+          "path": "writer.py"
+        }
+      ],
+      "nodes": [],
+      "root": "sha256:664c88034699d8dbb70c55adeb99943d2f6ec5542ca5064d012e59b4c84d661a"
+    },
+    "meta_insights": [
+      {
+        "category": "purpose",
+        "detail": "There is no SKILL.md or README.md in the package. Without documentation, there's no way to verify whether the skill's code matches its intended purpose. A skill that doesn't describe itself is asking you to trust it blindly.",
+        "evidence": [
+          "No SKILL.md, skill.md, README.md, or readme.md found"
+        ],
+        "severity": "warning",
+        "summary": "No SKILL.md or README.md found — the skill doesn't describe itself.",
+        "title": "PURPOSE & CAPABILITY"
+      },
+      {
+        "category": "scope",
+        "detail": "Without a SKILL.md, there are no instructions to cross-reference.",
+        "evidence": [
+          "No SKILL.md found"
+        ],
+        "severity": "info",
+        "summary": "No SKILL.md to analyze for instruction scope.",
+        "title": "INSTRUCTION SCOPE"
+      },
+      {
+        "category": "install",
+        "detail": "There's no setup.py, pyproject.toml, or package manager config, but the package contains 1 Python script(s) and 0 shell script(s). Because there's no controlled install process, using this skill means executing these scripts directly with your environment's Python or shell.\n\nReview the script contents before running them — without a formal install process, there are no dependency declarations to verify and no sandboxing guarantees.",
+        "evidence": [
+          "Python scripts: 1",
+          "Shell scripts: 0"
+        ],
+        "severity": "info",
+        "summary": "No formal install spec, but the package includes 1 executable script(s).",
+        "title": "INSTALL MECHANISM"
+      },
+      {
+        "category": "tools",
+        "detail": "The skill doesn't declare external tool requirements, and the code doesn't invoke subprocess binaries. Nothing to compare.",
+        "evidence": [
+          "No declared or detected binaries"
+        ],
+        "severity": "info",
+        "summary": "No tool declarations to verify; code doesn't invoke external binaries.",
+        "title": "TOOL DECLARATIONS"
+      }
+    ],
+    "path_violations": [
+      {
+        "capability": "fs:write",
+        "deny_pattern": "~/.bashrc",
+        "message": "Path violation: ~/.bashrc matches deny pattern ~/.bashrc",
+        "scope": "~/.bashrc"
+      }
+    ],
+    "persona": {
+      "confidence": "high",
+      "persona": "lgtm",
+      "reasoning": "Risk score 42/100. Clean code, clear intent, well-defined scopes. Ship it.",
+      "suspicion": "LOW"
+    },
+    "prohibited_findings": [],
+    "remediation_feedback": {
+      "constraints": [
+        "Prefer local, minimal code edits.",
+        "Do not introduce new capabilities.",
+        "If uncertain, fail closed and request human review."
+      ],
+      "max_iterations": 1,
+      "mode": "one_pass",
+      "objective": "Apply the highest-priority deterministic fixes while preserving behavior.",
+      "schema_version": "1.0",
+      "tasks": [
+        {
+          "col": 34,
+          "cwe_ids": [],
+          "end_col": 0,
+          "end_line": 0,
+          "file": "writer.py",
+          "kind": "finding",
+          "line": 8,
+          "message": "High-entropy string constant — possible hardcoded secret",
+          "owasp_ids": [],
+          "pattern": "high_entropy_string",
+          "risk_note": "",
+          "severity": "restricted",
+          "suggested_fix": "If this is a secret, move it to an environment variable or secrets manager. If it's not a secret, consider adding a comment explaining what it is.",
+          "tags": []
+        },
+        {
+          "col": 9,
+          "cwe_ids": [
+            "CWE-22",
+            "CWE-73"
+          ],
+          "end_col": 28,
+          "end_line": 9,
+          "file": "writer.py",
+          "kind": "finding",
+          "line": 9,
+          "message": "Filesystem write (target unresolved)",
+          "owasp_ids": [
+            "A01:2021"
+          ],
+          "pattern": "open",
+          "risk_note": "File path is dynamic — Aegis cannot verify which files are accessed. Could target credentials, configs, or system files.",
+          "severity": "restricted",
+          "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+          "tags": [
+            "filesystem",
+            "arbitrary-write",
+            "file-io"
+          ]
+        },
+        {
+          "col": 9,
+          "cwe_ids": [
+            "CWE-22",
+            "CWE-73"
+          ],
+          "end_col": 31,
+          "end_line": 15,
+          "file": "writer.py",
+          "kind": "finding",
+          "line": 15,
+          "message": "Filesystem write '~/.bashrc'",
+          "owasp_ids": [
+            "A01:2021"
+          ],
+          "pattern": "open",
+          "risk_note": "Targets: ~/.bashrc. Verify these paths are expected and within the project directory.",
+          "severity": "restricted",
+          "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+          "tags": [
+            "filesystem",
+            "arbitrary-write",
+            "file-io"
+          ]
+        },
+        {
+          "col": 9,
+          "cwe_ids": [
+            "CWE-22",
+            "CWE-73"
+          ],
+          "end_col": 37,
+          "end_line": 21,
+          "file": "writer.py",
+          "kind": "finding",
+          "line": 21,
+          "message": "Filesystem write '/tmp/output.txt'",
+          "owasp_ids": [
+            "A01:2021"
+          ],
+          "pattern": "open",
+          "risk_note": "Targets: /tmp/output.txt. Verify these paths are expected and within the project directory.",
+          "severity": "restricted",
+          "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+          "tags": [
+            "filesystem",
+            "arbitrary-write",
+            "file-io"
+          ]
+        }
+      ]
+    },
+    "restricted_findings": [
+      {
+        "capability": {
+          "action": "write",
+          "category": "fs",
+          "scope": [
+            "*"
+          ],
+          "scope_resolved": false
+        },
+        "col": 9,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-22",
+          "CWE-73"
+        ],
+        "end_col": 28,
+        "end_line": 9,
+        "file": "writer.py",
+        "function_context": "inject_ssh_key()",
+        "line": 9,
+        "message": "Filesystem write (target unresolved)",
+        "owasp_ids": [
+          "A01:2021"
+        ],
+        "pattern": "open",
+        "risk_note": "File path is dynamic — Aegis cannot verify which files are accessed. Could target credentials, configs, or system files.",
+        "severity": "restricted",
+        "source_line": "    with open(ssh_path, \"w\") as f:",
+        "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+        "tags": [
+          "filesystem",
+          "arbitrary-write",
+          "file-io"
+        ]
+      },
+      {
+        "capability": {
+          "action": "write",
+          "category": "fs",
+          "scope": [
+            "~/.bashrc"
+          ],
+          "scope_resolved": true
+        },
+        "col": 9,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-22",
+          "CWE-73"
+        ],
+        "end_col": 31,
+        "end_line": 15,
+        "file": "writer.py",
+        "function_context": "modify_shell_config()",
+        "line": 15,
+        "message": "Filesystem write '~/.bashrc'",
+        "owasp_ids": [
+          "A01:2021"
+        ],
+        "pattern": "open",
+        "risk_note": "Targets: ~/.bashrc. Verify these paths are expected and within the project directory.",
+        "severity": "restricted",
+        "source_line": "    with open(\"~/.bashrc\", \"a\") as f:",
+        "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+        "tags": [
+          "filesystem",
+          "arbitrary-write",
+          "file-io"
+        ]
+      },
+      {
+        "capability": {
+          "action": "write",
+          "category": "fs",
+          "scope": [
+            "/tmp/output.txt"
+          ],
+          "scope_resolved": true
+        },
+        "col": 9,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-22",
+          "CWE-73"
+        ],
+        "end_col": 37,
+        "end_line": 21,
+        "file": "writer.py",
+        "function_context": "safe_write()",
+        "line": 21,
+        "message": "Filesystem write '/tmp/output.txt'",
+        "owasp_ids": [
+          "A01:2021"
+        ],
+        "pattern": "open",
+        "risk_note": "Targets: /tmp/output.txt. Verify these paths are expected and within the project directory.",
+        "severity": "restricted",
+        "source_line": "    with open(\"/tmp/output.txt\", \"w\") as f:",
+        "suggested_fix": "Use the minimum required file permissions. Prefer project-local or temp directories. Validate file paths against an allowlist.",
+        "tags": [
+          "filesystem",
+          "arbitrary-write",
+          "file-io"
+        ]
+      },
+      {
+        "capability": {
+          "action": "access",
+          "category": "secret",
+          "scope": [
+            "hardcoded"
+          ],
+          "scope_resolved": true
+        },
+        "col": 34,
+        "confidence": "high",
+        "cwe_ids": [],
+        "end_col": 0,
+        "end_line": 0,
+        "file": "writer.py",
+        "function_context": "",
+        "line": 8,
+        "message": "High-entropy string constant — possible hardcoded secret",
+        "owasp_ids": [],
+        "pattern": "high_entropy_string",
+        "risk_note": "",
+        "severity": "restricted",
+        "source_line": "",
+        "suggested_fix": "If this is a secret, move it to an environment variable or secrets manager. If it's not a secret, consider adding a comment explaining what it is.",
+        "tags": []
+      }
+    ],
+    "risk_score_static": 42
+  },
+  "ephemeral": {
+    "llm_analysis": null,
+    "llm_provider": null,
+    "llm_risk_adjustment": 0,
+    "risk_score_final": 42,
+    "taxonomy": {
+      "classification_confidence": "none",
+      "permission_overreach": [
+        "This General Purpose skill requests fs. Unusual for this type — worth double-checking.",
+        "This General Purpose skill requests secret. Unusual for this type — worth double-checking."
+      ],
+      "skill_category": "general",
+      "tool_overreach": []
+    },
+    "unresolved_scope_analysis": []
+  },
+  "scan_target": "C:\\Users\\mhube\\.aegis-audit-MASTER\\aegis-core\\tests\\fixtures\\path_violation",
+  "scan_timestamp": "2026-02-12T20:37:42.009511+00:00"
+}

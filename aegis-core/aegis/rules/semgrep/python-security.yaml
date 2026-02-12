@@ -1,0 +1,375 @@
+rules:
+  # ── SQL Injection ──
+  - id: python-sql-injection-format
+    pattern-regex: 'cursor\.execute\s*\(\s*[f"''].*(%s|%d|\{)'
+    message: >
+      SQL injection via string formatting in cursor.execute().
+      Use parameterized queries: cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021"]
+      aegis_capability: "network:connect"
+
+  - id: python-sql-injection-fstring
+    pattern-regex: 'cursor\.execute\s*\(\s*f["\x27]'
+    message: >
+      SQL injection via f-string in cursor.execute().
+      Use parameterized queries instead of string interpolation.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021"]
+      aegis_capability: "network:connect"
+
+  - id: python-sql-injection-concat
+    pattern-regex: 'cursor\.execute\s*\(.*\+\s*(user|input|request|params|query|args)'
+    message: >
+      Possible SQL injection via string concatenation with user input.
+      Use parameterized queries.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021"]
+
+  # ── SSRF ──
+  - id: python-ssrf-requests-variable
+    pattern-regex: 'requests\.(get|post|put|delete|patch|head)\s*\(\s*(user|input|request|url_param|args|data)\b'
+    message: >
+      Potential SSRF: requests call with user-controlled URL.
+      Validate and whitelist target URLs before making requests.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-918"]
+      owasp: ["A10:2021"]
+      aegis_capability: "network:connect"
+
+  - id: python-ssrf-urllib-variable
+    pattern-regex: 'urllib\.request\.(urlopen|Request)\s*\(\s*(user|input|request|url_param|args|data)\b'
+    message: >
+      Potential SSRF: urllib call with user-controlled URL.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-918"]
+      aegis_capability: "network:connect"
+
+  # ── Path Traversal ──
+  - id: python-path-traversal
+    pattern-regex: 'open\s*\(\s*(user|input|request|params|args|data)\b'
+    message: >
+      Path traversal: file open with user-controlled path.
+      Validate paths against a whitelist or use os.path.realpath() to resolve before opening.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-22"]
+      owasp: ["A01:2021"]
+      aegis_capability: "fs:read"
+
+  - id: python-path-traversal-join
+    pattern-regex: 'os\.path\.join\s*\(.*,\s*(user|input|request|params|args)\b'
+    message: >
+      Potential path traversal via os.path.join with user input.
+      An absolute path in user input bypasses the base directory.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-22"]
+
+  # ── Insecure Random ──
+  - id: python-insecure-random-token
+    pattern-regex: 'random\.(random|randint|choice|randrange|getrandbits)\s*\('
+    message: >
+      Insecure random number generator. The random module uses Mersenne Twister
+      which is predictable. Use secrets module for security-sensitive values.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-338"]
+
+  # ── Hardcoded Credentials ──
+  - id: python-hardcoded-password
+    pattern-regex: '(password|passwd|pwd)\s*=\s*["\x27][^"\x27]{8,}["\x27]'
+    message: >
+      Hardcoded password detected. Use environment variables or a secrets manager.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-798"]
+      owasp: ["A07:2021"]
+      aegis_capability: "secret:access"
+
+  - id: python-hardcoded-api-key
+    pattern-regex: '(api_key|apikey|api_secret|secret_key)\s*=\s*["\x27][A-Za-z0-9_\-]{16,}["\x27]'
+    message: >
+      Hardcoded API key or secret detected. Use environment variables.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-798"]
+      aegis_capability: "secret:access"
+
+  # ── Deserialization ──
+  - id: python-yaml-unsafe-load
+    pattern-regex: 'yaml\.load\s*\([^)]*\)\s*$'
+    message: >
+      yaml.load() without Loader is unsafe — allows arbitrary code execution.
+      Use yaml.safe_load() instead.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  - id: python-pickle-load
+    pattern-regex: 'pickle\.loads?\s*\('
+    message: >
+      pickle deserialization can execute arbitrary code.
+      Use JSON or a safe serialization format for untrusted data.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  # ── Command Injection ──
+  - id: python-os-system-format
+    pattern-regex: 'os\.system\s*\(\s*f["\x27]'
+    message: >
+      Command injection via os.system with f-string. Use subprocess.run
+      with a list argument and shell=False.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-78"]
+      owasp: ["A03:2021"]
+      aegis_capability: "subprocess:exec"
+
+  - id: python-subprocess-shell-format
+    pattern-regex: 'subprocess\.(run|call|check_call|check_output|Popen)\s*\(\s*f["\x27]'
+    message: >
+      Command injection via subprocess with f-string.
+      Use list arguments with shell=False.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-78"]
+      aegis_capability: "subprocess:exec"
+
+  # ── TLS/SSL ──
+  - id: python-verify-false
+    pattern-regex: 'verify\s*=\s*False'
+    message: >
+      TLS certificate verification disabled. This allows man-in-the-middle attacks.
+      Set verify=True or remove the parameter.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-295"]
+      owasp: ["A07:2021"]
+
+  # ── Debug / Information Exposure ──
+  - id: python-debug-true
+    pattern-regex: 'DEBUG\s*=\s*True'
+    message: >
+      Debug mode enabled. Disable debug mode in production to prevent
+      information leakage.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-215"]
+
+  - id: python-flask-debug-run
+    pattern-regex: '\.run\s*\([^)]*debug\s*=\s*True'
+    message: >
+      Flask app running with debug=True. The Werkzeug debugger allows
+      arbitrary code execution. Never use debug mode in production.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-215", "CWE-94"]
+      owasp: ["A05:2021"]
+
+  # ── SSL/TLS Misuse ──
+  - id: python-ssl-unverified-context
+    pattern-regex: 'ssl\._create_unverified_context\s*\('
+    message: >
+      ssl._create_unverified_context() disables all certificate verification.
+      Use ssl.create_default_context() for secure connections.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-295"]
+      owasp: ["A07:2021"]
+
+  - id: python-ssl-weak-protocol
+    pattern-regex: 'ssl\.PROTOCOL_(SSLv2|SSLv3|SSLv23|TLSv1)\b'
+    message: >
+      Weak or deprecated TLS/SSL protocol version. SSLv2, SSLv3, and TLSv1
+      have known vulnerabilities. Use ssl.PROTOCOL_TLS_CLIENT or
+      ssl.create_default_context() which negotiates the highest available version.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-327"]
+      owasp: ["A02:2021"]
+
+  - id: python-ssl-check-hostname-false
+    pattern-regex: 'check_hostname\s*=\s*False'
+    message: >
+      Hostname verification disabled. This allows man-in-the-middle attacks
+      even when certificates are verified. Keep check_hostname=True.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-295"]
+      owasp: ["A07:2021"]
+
+  # ── Additional Deserialization ──
+  - id: python-yaml-load-all-unsafe
+    pattern-regex: 'yaml\.load_all\s*\([^)]*\)\s*$'
+    message: >
+      yaml.load_all() without Loader is unsafe — allows arbitrary code execution.
+      Use yaml.safe_load_all() instead.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  - id: python-marshal-load
+    pattern-regex: 'marshal\.loads?\s*\('
+    message: >
+      marshal deserialization can execute arbitrary code. marshal is not
+      designed for untrusted data — use JSON or a safe serialization format.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  - id: python-shelve-open
+    pattern-regex: 'shelve\.open\s*\('
+    message: >
+      shelve uses pickle internally and can execute arbitrary code when
+      loading untrusted data. Use JSON, SQLite, or another safe storage format.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  - id: python-jsonpickle-decode
+    pattern-regex: 'jsonpickle\.(decode|loads|unpickler)\s*\('
+    message: >
+      jsonpickle deserialization can execute arbitrary code. Unlike standard
+      JSON, jsonpickle reconstructs Python objects. Use json.loads() for
+      untrusted data.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+      owasp: ["A08:2021"]
+
+  - id: python-dill-load
+    pattern-regex: 'dill\.loads?\s*\('
+    message: >
+      dill deserialization can execute arbitrary code — same risk as pickle.
+      Use JSON or a safe serialization format for untrusted data.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-502"]
+
+  # ── Assert for Security ──
+  - id: python-assert-security-check
+    pattern-regex: 'assert\s+(.*\b(is_admin|is_authenticated|is_authorized|is_superuser|has_permission|has_role|is_staff|is_active)\b)'
+    message: >
+      assert used for security/authorization check. assert statements are
+      stripped when Python runs with optimization (-O flag). Use if/raise
+      for security checks.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-617"]
+      owasp: ["A01:2021"]
+
+  # ── Tempfile Race Condition ──
+  - id: python-tempfile-mktemp
+    pattern-regex: 'tempfile\.mktemp\s*\('
+    message: >
+      tempfile.mktemp() is vulnerable to race conditions (TOCTOU).
+      Use tempfile.mkstemp() or tempfile.NamedTemporaryFile() instead.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-377"]
+
+  # ── Requests Without Timeout ──
+  - id: python-requests-no-timeout
+    pattern-regex: 'requests\.(get|post|put|delete|patch|head|options)\s*\([^)]*\)\s*$'
+    message: >
+      HTTP request without explicit timeout. This can cause the program to
+      hang indefinitely. Always pass timeout=: requests.get(url, timeout=30).
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-400"]
+
+  # ── JWT Without Verification ──
+  - id: python-jwt-decode-no-verify
+    pattern-regex: 'jwt\.decode\s*\([^)]*verify_signature["\x27\s]*:\s*False'
+    message: >
+      JWT decoded without signature verification. An attacker can forge
+      arbitrary tokens. Always verify JWT signatures.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-347"]
+      owasp: ["A02:2021"]
+
+  - id: python-jwt-algorithms-none
+    pattern-regex: 'jwt\.(decode|encode)\s*\([^)]*algorithms?\s*[:=]\s*\[?\s*["\x27]none["\x27]'
+    message: >
+      JWT with 'none' algorithm allows forged tokens. Always specify a
+      strong algorithm (RS256, ES256, HS256 with a strong secret).
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-347"]
+
+  # ── Template Injection ──
+  - id: python-jinja2-autoescape-off
+    pattern-regex: 'Environment\s*\([^)]*autoescape\s*=\s*False'
+    message: >
+      Jinja2 autoescape disabled. This allows XSS via template injection.
+      Set autoescape=True or use select_autoescape().
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+
+  - id: python-django-mark-safe
+    pattern-regex: 'mark_safe\s*\('
+    message: >
+      mark_safe() bypasses Django's auto-escaping. If the argument contains
+      user input, this enables XSS. Ensure the value is fully sanitized.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021"]
+
+  # ── Subprocess shell=True with string ──
+  - id: python-subprocess-shell-true-string
+    pattern-regex: 'subprocess\.(run|call|check_call|check_output|Popen)\s*\(\s*["\x27].*,\s*shell\s*=\s*True'
+    message: >
+      subprocess with shell=True and string command. Use a list argument
+      with shell=False to prevent shell injection.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe: ["CWE-78"]
+      owasp: ["A03:2021"]
+      aegis_capability: "subprocess:exec"

@@ -1,0 +1,260 @@
+{
+  "aegis_version": "0.1.0",
+  "deterministic": {
+    "capabilities": {},
+    "combination_risks": [],
+    "external_binaries": [],
+    "file_count": 1,
+    "manifest_source": "directory",
+    "merkle_tree": {
+      "algorithm": "sha256",
+      "leaves": [
+        {
+          "hash": "sha256:5f9f349d50ae834f2e61a7046772f06a8b04e2bdfe8e222decde0744ee1fd01f",
+          "path": "malicious.py"
+        }
+      ],
+      "nodes": [],
+      "root": "sha256:5f9f349d50ae834f2e61a7046772f06a8b04e2bdfe8e222decde0744ee1fd01f"
+    },
+    "meta_insights": [
+      {
+        "category": "purpose",
+        "detail": "There is no SKILL.md or README.md in the package. Without documentation, there's no way to verify whether the skill's code matches its intended purpose. A skill that doesn't describe itself is asking you to trust it blindly.",
+        "evidence": [
+          "No SKILL.md, skill.md, README.md, or readme.md found"
+        ],
+        "severity": "warning",
+        "summary": "No SKILL.md or README.md found — the skill doesn't describe itself.",
+        "title": "PURPOSE & CAPABILITY"
+      },
+      {
+        "category": "scope",
+        "detail": "Without a SKILL.md, there are no instructions to cross-reference.",
+        "evidence": [
+          "No SKILL.md found"
+        ],
+        "severity": "info",
+        "summary": "No SKILL.md to analyze for instruction scope.",
+        "title": "INSTRUCTION SCOPE"
+      },
+      {
+        "category": "install",
+        "detail": "There's no setup.py, pyproject.toml, or package manager config, but the package contains 1 Python script(s) and 0 shell script(s). Because there's no controlled install process, using this skill means executing these scripts directly with your environment's Python or shell.\n\nReview the script contents before running them — without a formal install process, there are no dependency declarations to verify and no sandboxing guarantees.",
+        "evidence": [
+          "Python scripts: 1",
+          "Shell scripts: 0"
+        ],
+        "severity": "info",
+        "summary": "No formal install spec, but the package includes 1 executable script(s).",
+        "title": "INSTALL MECHANISM"
+      },
+      {
+        "category": "tools",
+        "detail": "The skill doesn't declare external tool requirements, and the code doesn't invoke subprocess binaries. Nothing to compare.",
+        "evidence": [
+          "No declared or detected binaries"
+        ],
+        "severity": "info",
+        "summary": "No tool declarations to verify; code doesn't invoke external binaries.",
+        "title": "TOOL DECLARATIONS"
+      }
+    ],
+    "path_violations": [],
+    "persona": {
+      "confidence": "high",
+      "persona": "lgtm",
+      "reasoning": "Risk score 0/100. Clean code, clear intent, well-defined scopes. Ship it.",
+      "suspicion": "LOW"
+    },
+    "prohibited_findings": [
+      {
+        "capability": null,
+        "col": 13,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-95"
+        ],
+        "end_col": 28,
+        "end_line": 8,
+        "file": "malicious.py",
+        "function_context": "process_input()",
+        "line": 8,
+        "message": "Dynamic code execution via eval()",
+        "owasp_ids": [
+          "A03:2021"
+        ],
+        "pattern": "eval",
+        "risk_note": "eval() executes arbitrary code from strings — the code doesn't exist in the source until runtime, making it invisible to static analysis.",
+        "severity": "prohibited",
+        "source_line": "    result = eval(user_data)",
+        "suggested_fix": "Remove dynamic code execution. Use `ast.literal_eval()` for safe data parsing, or refactor to avoid evaluating arbitrary strings.",
+        "tags": [
+          "code-injection",
+          "dynamic-exec"
+        ]
+      },
+      {
+        "capability": null,
+        "col": 4,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-95"
+        ],
+        "end_col": 14,
+        "end_line": 15,
+        "file": "malicious.py",
+        "function_context": "load_plugin()",
+        "line": 15,
+        "message": "Dynamic code execution via exec()",
+        "owasp_ids": [
+          "A03:2021"
+        ],
+        "pattern": "exec",
+        "risk_note": "exec() executes arbitrary code from strings — the code doesn't exist in the source until runtime, making it invisible to static analysis.",
+        "severity": "prohibited",
+        "source_line": "    exec(code)",
+        "suggested_fix": "Remove `exec()`. Refactor to use explicit function calls or configuration-driven logic instead of executing code from strings.",
+        "tags": [
+          "code-injection",
+          "dynamic-exec"
+        ]
+      },
+      {
+        "capability": null,
+        "col": 10,
+        "confidence": "high",
+        "cwe_ids": [
+          "CWE-94"
+        ],
+        "end_col": 46,
+        "end_line": 21,
+        "file": "malicious.py",
+        "function_context": "dynamic_import()",
+        "line": 21,
+        "message": "Dynamic import with variable argument — module name determined at runtime",
+        "owasp_ids": [
+          "A03:2021"
+        ],
+        "pattern": "importlib.import_module",
+        "risk_note": "The module name is a variable, not a string literal. Any module on the system could be loaded, including malicious ones. The target cannot be determined by static analysis.",
+        "severity": "prohibited",
+        "source_line": "    mod = importlib.import_module(module_name)",
+        "suggested_fix": "Replace dynamic imports with explicit `import` statements. If dynamic loading is required, validate module names against a strict allowlist.",
+        "tags": [
+          "code-injection",
+          "dynamic-import"
+        ]
+      }
+    ],
+    "remediation_feedback": {
+      "constraints": [
+        "Prefer local, minimal code edits.",
+        "Do not introduce new capabilities.",
+        "If uncertain, fail closed and request human review."
+      ],
+      "max_iterations": 1,
+      "mode": "one_pass",
+      "objective": "Apply the highest-priority deterministic fixes while preserving behavior.",
+      "schema_version": "1.0",
+      "tasks": [
+        {
+          "col": 13,
+          "cwe_ids": [
+            "CWE-95"
+          ],
+          "end_col": 28,
+          "end_line": 8,
+          "file": "malicious.py",
+          "kind": "finding",
+          "line": 8,
+          "message": "Dynamic code execution via eval()",
+          "owasp_ids": [
+            "A03:2021"
+          ],
+          "pattern": "eval",
+          "risk_note": "eval() executes arbitrary code from strings — the code doesn't exist in the source until runtime, making it invisible to static analysis.",
+          "severity": "prohibited",
+          "suggested_fix": "Remove dynamic code execution. Use `ast.literal_eval()` for safe data parsing, or refactor to avoid evaluating arbitrary strings.",
+          "tags": [
+            "code-injection",
+            "dynamic-exec"
+          ]
+        },
+        {
+          "col": 4,
+          "cwe_ids": [
+            "CWE-95"
+          ],
+          "end_col": 14,
+          "end_line": 15,
+          "file": "malicious.py",
+          "kind": "finding",
+          "line": 15,
+          "message": "Dynamic code execution via exec()",
+          "owasp_ids": [
+            "A03:2021"
+          ],
+          "pattern": "exec",
+          "risk_note": "exec() executes arbitrary code from strings — the code doesn't exist in the source until runtime, making it invisible to static analysis.",
+          "severity": "prohibited",
+          "suggested_fix": "Remove `exec()`. Refactor to use explicit function calls or configuration-driven logic instead of executing code from strings.",
+          "tags": [
+            "code-injection",
+            "dynamic-exec"
+          ]
+        },
+        {
+          "col": 10,
+          "cwe_ids": [
+            "CWE-94"
+          ],
+          "end_col": 46,
+          "end_line": 21,
+          "file": "malicious.py",
+          "kind": "finding",
+          "line": 21,
+          "message": "Dynamic import with variable argument — module name determined at runtime",
+          "owasp_ids": [
+            "A03:2021"
+          ],
+          "pattern": "importlib.import_module",
+          "risk_note": "The module name is a variable, not a string literal. Any module on the system could be loaded, including malicious ones. The target cannot be determined by static analysis.",
+          "severity": "prohibited",
+          "suggested_fix": "Replace dynamic imports with explicit `import` statements. If dynamic loading is required, validate module names against a strict allowlist.",
+          "tags": [
+            "code-injection",
+            "dynamic-import"
+          ]
+        },
+        {
+          "evidence": [
+            "No SKILL.md, skill.md, README.md, or readme.md found"
+          ],
+          "kind": "meta_insight",
+          "severity": "warning",
+          "suggested_fix": "There is no SKILL.md or README.md in the package. Without documentation, there's no way to verify whether the skill's code matches its intended purpose. A skill that doesn't describe itself is asking you to trust it blindly.",
+          "summary": "No SKILL.md or README.md found — the skill doesn't describe itself.",
+          "title": "PURPOSE & CAPABILITY"
+        }
+      ]
+    },
+    "restricted_findings": [],
+    "risk_score_static": 0
+  },
+  "ephemeral": {
+    "llm_analysis": null,
+    "llm_provider": null,
+    "llm_risk_adjustment": 0,
+    "risk_score_final": 0,
+    "taxonomy": {
+      "classification_confidence": "none",
+      "permission_overreach": [],
+      "skill_category": "general",
+      "tool_overreach": []
+    },
+    "unresolved_scope_analysis": []
+  },
+  "scan_target": "C:\\Users\\mhube\\.aegis-audit-MASTER\\aegis-core\\tests\\fixtures\\dangerous_skill",
+  "scan_timestamp": "2026-02-12T18:33:50.766833+00:00"
+}

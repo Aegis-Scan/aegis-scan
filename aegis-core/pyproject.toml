@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aegis-audit"
+version = "0.1.0"
+description = "Behavioral security scanner for AI agent skills and MCP tools — scan, certify, and govern."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.11"
+authors = [
+    {name = "Aegis Project Contributors"},
+]
+keywords = [
+    "security",
+    "mcp",
+    "ai-agent",
+    "static-analysis",
+    "vulnerability-scanner",
+    "lockfile",
+    "openclaw",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer",
+    "rich",
+    "pydantic>=2.0",
+    "cryptography",
+    "httpx",
+    "pyyaml",
+    "mcp>=1.0.0",
+]
+
+[project.optional-dependencies]
+llm = [
+    "google-genai",
+    "anthropic",
+    "openai",
+]
+dev = [
+    "pytest",
+    "vcrpy",
+    "pytest-asyncio",
+]
+
+[project.urls]
+Homepage = "https://github.com/Aegis-Scan/aegis-scan"
+Documentation = "https://github.com/Aegis-Scan/aegis-scan#readme"
+Repository = "https://github.com/Aegis-Scan/aegis-scan"
+Issues = "https://github.com/Aegis-Scan/aegis-scan/issues"
+
+[project.scripts]
+aegis = "aegis.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aegis"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "aegis/",
+    "README.md",
+    "LICENSE",
+    "SKILL.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

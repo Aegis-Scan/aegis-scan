@@ -1,0 +1,62 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+.eggs/
+
+# ── Virtual environments ───────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Testing / Coverage ─────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ── IDE / Editor ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Aegis internal dev artifacts ───────────────────────
+# Batch scan workspace (1000+ ClawHub skills used for testing)
+.clawhub_batch_skills/
+
+# Batch scan output reports
+batch_scan_results/
+
+# Sprint/implementation planning docs (internal only)
+MASTER_PROMPT.md
+MASTER_PROMPT_ADD_ON_Runtime_Defenses.md
+NEXT_SPRINT_PROMPT.md
+SPRINT_2_PROMPT.md
+SPRINT_2_IMPLEMENTATION_PROMPT.md
+
+# Built wheel artifacts and dev output
+aegis-core/dist/
+aegis-core/scan_output.txt
+
+# ── Secrets / Config ───────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+config.yaml
+
+# ── OS artifacts ───────────────────────────────────────
+*.log
+*.tmp
