@@ -1,243 +1,375 @@
-# Aegis: Behavioral Liability & Assurance Platform
+# Aegis Audit 🦞
 
-> The "SSL Certificate" for AI Agent Skills — scan, certify, and govern MCP tools.
+**Behavioral security scanner for AI agent skills, like on OpenClaw, and MCP tools.**
 
-Aegis is a distributed governance infrastructure for the AI Agent economy. This package provides the **CLI Scanner** (Phase 1) — an open-source capability scanner for developers to certify their MCP tools.
+> The "SSL certificate" for AI agent skills — scan, certify, and govern before you trust.
 
-## What It Does
+Aegis answers the question every agent user should ask: *"What can this skill actually do, and should I trust it?"*
 
-- **Scans** Python-based MCP skills/tools for dangerous capabilities
-- **Detects** prohibited patterns (eval, exec, dynamic imports, ctypes)
-- **Extracts** scoped capabilities with pessimistic static analysis
-- **Identifies** "Deadly Trifecta" combination risks (e.g., Browser + Secrets + Network)
-- **Flags** sensitive filesystem path violations and denied binary invocations
-- **Generates** a cryptographically signed `aegis.lock` lockfile
-- **Verifies** code integrity against existing lockfiles
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/LICENSE)
 
-## Installation
+---
 
-```bash
-# From PyPI
-pip install aegis-audit
+## Why Aegis?
 
-# From source
-pip install -e .
+AI agents install and run skills with broad system access. Today, you're trusting them blindly. Aegis gives you:
 
-# With LLM support (optional)
-pip install aegis-audit[llm]
+- **Deterministic static analysis** — AST parsing + Semgrep + 15 specialized scanners. Same code = same report, every time.
+- **Scope-resolved capabilities** — Not just "accesses the filesystem" but *exactly which files, URLs, hosts, and ports*.
+- **Risk scoring** — 0–100 composite score with CWE/OWASP-mapped findings and severity tiers.
+- **Cryptographic proof** — Ed25519-signed lockfile with Merkle tree for tamper detection.
+- **Optional LLM analysis** — Bring your own key (Gemini, Claude, OpenAI, Ollama, local).
 
-# With development tools
-pip install -e ".[dev]"
-```
+| Feature | Basic Safety Summary | Aegis Audit |
+|---|---|---|
+| Detection method | LLM reads README | AST + Semgrep + 15 scanners |
+| Deterministic | No | Yes |
+| Capabilities | High-level categories | Scope-resolved (files/URLs/ports) |
+| Vulnerability detection | None | 700+ patterns, CWE-mapped |
+| Secret scanning | None | 30+ token patterns |
+| Obfuscation detection | None | Base64-exec, homoglyphs, stego |
+| Tamper detection | None | Ed25519-signed Merkle tree |
+| Fix suggestions | None | Actionable remediation per finding |
 
-**Requirements:** Python 3.11+
+---
 
 ## Quick Start
 
-### Configure LLM (optional)
+### 1. Install
 
 ```bash
-# Interactive setup — saves config to ~/.aegis/config.yaml
+pip install aegis-audit
+```
+
+### 2. Scan a skill
+
+```bash
+# Scan the current directory (deterministic, no API key needed)
+aegis scan --no-llm
+
+# Scan a specific path
+aegis scan ./some-skill --no-llm
+```
+
+> **Tip:** All commands default to `.` (the current directory) when no path is given.
+> Most users `cd` into a skill and run `aegis scan` from there.
+
+### 3. (Optional) Add LLM analysis
+
+```bash
+# Interactive setup — choose provider, model, paste API key
 aegis setup
 
-# Or just set an env var (takes priority over config)
-export GEMINI_API_KEY=your-key
+# Then scan with LLM enabled (it's on by default when configured)
+aegis scan
 ```
 
-### Scan a skill directory (read-only)
+`aegis setup` saves your config to `~/.aegis/config.yaml`. You can also set an environment variable instead — env vars always take priority over the config file:
 
 ```bash
-# Full scan (AST + Semgrep, plus LLM if configured)
-aegis scan ./my-skill
-
-# Skip LLM analysis (faster, saves money)
-aegis scan ./my-skill --no-llm
-
-# Scan with LLM analysis (requires env var or aegis setup)
-aegis scan ./my-skill
-
-# JSON output for CI pipelines
-aegis scan ./my-skill --json --no-llm
-
-# Verbose output with per-file findings
-aegis scan ./my-skill --verbose --no-llm
+export GEMINI_API_KEY=your-key        # or OPENAI_API_KEY, ANTHROPIC_API_KEY
+aegis scan
 ```
 
-### Generate a signed lockfile
+### 4. Generate a signed lockfile
 
 ```bash
-# Scan + generate aegis.lock
-aegis lock ./my-skill
-
-# Force lockfile even for CRITICAL risk
-aegis lock ./my-skill --force
+aegis lock
 ```
 
-### Verify a lockfile
+This runs a full scan and generates `aegis.lock` — a cryptographically signed snapshot of the skill's security state. Commit it alongside the skill so consumers can verify nothing changed.
+
+### 5. Verify a lockfile
 
 ```bash
-# Verify aegis.lock matches current code
-aegis verify ./my-skill
-
-# Bit-for-bit hash verification (comments, whitespace changes will fail)
-aegis verify ./my-skill --strict
-
-# Verify with specific lockfile path
-aegis verify ./my-skill --lockfile /path/to/aegis.lock
-
-# JSON output
-aegis verify ./my-skill --json
+aegis verify
 ```
 
-### Generate a README badge
+Checks that the current code matches the signed `aegis.lock`. If any file was modified, the Merkle root won't match and verification fails.
 
-```bash
-# Print badge markdown for your README
-aegis badge ./my-skill
-
-# Write badge to a file
-aegis badge ./my-skill --output badge.md
-```
-
-### Dependency-free verification
-
-The verifier can run with zero dependencies beyond stdlib + `cryptography`:
-
-```bash
-python -m aegis.verify.standalone ./my-skill
-```
+---
 
 ## CLI Reference
 
-### `aegis setup`
+| Command | Description |
+|---------|-------------|
+| `aegis scan [path]` | Full security scan with risk scoring |
+| `aegis lock [path]` | Scan + generate signed `aegis.lock` |
+| `aegis verify [path]` | Verify lockfile against current code |
+| `aegis badge [path]` | Generate shields.io badge markdown |
+| `aegis setup` | Interactive LLM configuration wizard |
+| `aegis mcp-serve` | Start the MCP server (stdio transport) |
+| `aegis mcp-config` | Print MCP config JSON for Cursor / Claude Desktop |
+| `aegis version` | Show the Aegis version |
 
-Interactive LLM configuration wizard. Saves your provider, model, and API key to `~/.aegis/config.yaml`. Environment variables always take priority over the config file.
+All commands that take `[path]` default to `.` (current directory). Common flags: `--no-llm` (skip LLM), `--json` (CI output), `-v` (verbose). Run `aegis scan --help` (or `aegis lock --help`, etc.) for full flags.
 
-### `aegis scan <path>`
+---
 
-| Flag | Description |
-|------|-------------|
-| `--verbose`, `-v` | Show per-file findings and LLM reasoning |
-| `--json` | Output raw JSON to stdout (for CI) |
-| `--quiet`, `-q` | Suppress all output except errors |
-| `--no-llm` | Skip AI/LLM analysis (faster, saves money) |
-| `--no-semgrep` | Skip bundled static analysis rules |
+## LLM Setup
 
-### `aegis lock <path>`
+Aegis works fully offline with deterministic analysis. LLM analysis is **optional** — it adds an AI second opinion on intent and risk but is never required.
 
-| Flag | Description |
-|------|-------------|
-| `--force` | Generate lockfile even for CRITICAL risk |
-| `--verbose`, `-v` | Show per-file findings |
-| `--json` | Output raw JSON to stdout |
-| `--quiet`, `-q` | Suppress all output except errors |
-| `--no-llm` | Skip AI/LLM analysis |
-| `--no-semgrep` | Skip bundled static analysis rules |
+### Option A: Interactive setup (recommended)
 
-### `aegis verify <path>`
+```bash
+aegis setup
+```
 
-| Flag | Description |
-|------|-------------|
-| `--lockfile <path>` | Path to aegis.lock (default: `<path>/aegis.lock`) |
-| `--strict` | Bit-for-bit hash verification — fail if ANY file changed (including comments, whitespace) |
-| `--json` | Output verification result as JSON |
+This walks you through:
+1. **Choose a provider** — Gemini, Claude, OpenAI, or a local server (Ollama, LM Studio, llama.cpp, vLLM)
+2. **Pick a model** — curated list per provider, or enter a custom model ID
+3. **Paste your API key** — hidden input, tested before saving
 
-### `aegis badge <path>`
+Config is saved to `~/.aegis/config.yaml`. Run `aegis setup` again anytime to change it.
 
-| Flag | Description |
-|------|-------------|
-| `--output`, `-o` | Write badge markdown to a file instead of stdout |
-| `--llm/--no-llm` | Include LLM analysis (default: skip for speed) |
+### Option B: Environment variables
+
+Set one of these and Aegis picks it up automatically:
+
+| Variable | Provider |
+|---|---|
+| `GEMINI_API_KEY` | Google Gemini |
+| `OPENAI_API_KEY` | OpenAI |
+| `ANTHROPIC_API_KEY` | Anthropic Claude |
+
+For local servers:
+
+| Variable | Description |
+|---|---|
+| `OLLAMA_HOST` | Ollama server URL (default: `http://localhost:11434`) |
+| `AEGIS_LOCAL_OPENAI_URL` | Any OpenAI-compatible server URL |
+| `AEGIS_LLM_PROVIDER` | Force a specific provider: `openai`, `gemini`, `claude`, `ollama`, `local_openai` |
+
+See the [full README on GitHub](https://github.com/Aegis-Scan/aegis-scan/blob/main/README.md) for the complete list of model override variables.
+
+---
+
+We've established personas for code repositories that run with our deterministic checks, no LLM is required. Get to know our code personas:
+
+## Vibe Check Personas
+
+Aegis assigns each scanned skill a persona based on deterministic analysis. The Vibe Check shows one of these:
+
+**🔥 Cracked Dev**  
+10x engineer energy. Clean code, smart patterns, minimal permissions. The kind of skill you'd want to maintain.
+
+**✅ LGTM**  
+Looks good to me. Permissions match the intent, scopes are sane, nothing weird. Ship it.
+
+**🍌 Trust Me Bro**  
+Polished on the outside, suspicious on the inside. Docs vs code mismatch or unusual permissions. Trust, but verify.
+
+**🤔 You Sure About That?**  
+The intern special. Messy code, missing pieces, docs that overpromise. No malicious intent, but it needs a real review.
+
+**💕 Co-Dependent Lover**  
+Tiny logic, huge dependency tree. Loves node_modules. Supply chain risk is real here.
+
+**👺 Permission Goblin**  
+Wants everything: filesystem, network, secrets, the kitchen sink. Over-scoped and worth a closer look.
+
+**🍝 Spaghetti Monster**  
+Unreadable chaos. High complexity, hard to follow. Good luck auditing this.
+
+**🐍 The Snake**  
+Warning: This code might look clean, but it isn't. Do not use this skill, it is malicious by design.
+
+---
+
+## Example Output
+
+**With LLM and verbose** (`aegis scan -v`):
+
+```
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│ AEGIS SECURITY AUDIT                                        │
+│   Target: ./my-skill                                        │
+│   Files:  8 (3 Python, 1 config, 4 other)                   │
+│   Mode:   AST + LLM (gemini)                                │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                  │
+│   The intern special. Messy code, missing pieces,           │
+│   docs that overpromise. No malicious intent, but it       │
+│   needs a real review.                                      │
+│   ####----------------  22/100 - LOW - minor observations   │
+│   only                                                      │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Trust Analysis ────────────────────────────────────────────╮
+│   [ALERT]  The description claims capabilities that don't   │
+│   match what the code provides - 5 mismatch(es) found.      │
+│   [ALERT]  SKILL.md references 13 file(s) that don't exist  │
+│   in the package.                                           │
+╰─────────────────────────────────────────────────────────────╯
+```
+
+**AST-only** (no LLM, `aegis scan --no-llm`):
+
+```
+╭─ Aegis Security Audit ──────────────────────────────────────╮
+│   Mode:   AST-only                                          │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Vibe Check ────────────────────────────────────────────────╮
+│   🤔  You Sure About That?                                  │
+│   ####----------------  22/100 - LOW                         │
+╰─────────────────────────────────────────────────────────────╯
+╭─ Scan Complete ─────────────────────────────────────────────╮
+│   Report: ./aegis_report.json                                │
+│   Run aegis lock to generate a signed lockfile.             │
+╰─────────────────────────────────────────────────────────────╯
+```
+
+---
+
+## What Gets Scanned
+
+| Scanner | What It Detects |
+|---|---|
+| **AST Parser** | 750+ Python function/method patterns across 15+ categories |
+| **Semgrep Rules** | 80+ regex rules for Python, JavaScript, and secrets |
+| **Secret Scanner** | API keys, tokens, private keys, connection strings (30+ patterns) |
+| **Shell Analyzer** | Pipe-to-shell, reverse shells, inline exec |
+| **JS Analyzer** | XSS, eval, prototype pollution, dynamic imports |
+| **Dockerfile Analyzer** | Privilege escalation, secrets in ENV/ARG, unpinned images |
+| **Config Analyzer** | Dangerous settings in YAML, JSON, TOML, INI |
+| **Social Engineering** | Misleading filenames, Unicode tricks, trust manipulation |
+| **Steganography** | Hidden payloads in images, homoglyph attacks |
+| **Shadow Module Detector** | Stdlib-shadowing files (`os.py`, `sys.py` in the skill) |
+| **Combo Analyzer** | Multi-capability attack chains (exfiltration, C2, ransomware) |
+| **Taint Analysis** | Source-to-sink data flows (commands, URLs, SQL, paths) |
+| **Complexity Analyzer** | Cyclomatic complexity warnings for hard-to-audit functions |
+| **Skill Meta Analyzer** | SKILL.md vs. actual code cross-referencing |
+| **Persona Classifier** | Overall trust profile (LGTM, Permission Goblin, etc.) |
+
+---
+
+## Use as an MCP Server
+
+Aegis runs as an MCP server for Cursor, Claude Desktop, and any MCP-compatible client. Three tools are exposed: `scan_skill`, `verify_lockfile`, and `list_capabilities`.
+
+### Add to Cursor
+
+Add this to your `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "aegis",
+      "args": ["mcp-serve"]
+    }
+  }
+}
+```
+
+Or generate it automatically:
+
+```bash
+aegis mcp-config
+```
+
+### Add to Claude Desktop
+
+Add the same block to your Claude Desktop MCP config. Aegis uses stdio transport — no network server needed.
+
+---
+
+## Use as a Cursor Skill (ClawHub)
+
+Aegis is available as a skill on [ClawHub](https://clawhub.com). Install it and your agent will automatically audit skills before enabling them.
+
+See [SKILL.md](https://github.com/Aegis-Scan/aegis-scan/blob/main/SKILL.md) for the full skill specification.
+
+---
+
+## JSON Output for CI
+
+```bash
+# Full JSON report to stdout
+aegis scan --json --no-llm
+
+# Pipe into jq to extract the risk score
+aegis scan --json --no-llm | jq '.deterministic.risk_score_static'
+
+# Fail CI if risk > 50
+aegis scan --json --no-llm | jq -e '.deterministic.risk_score_static <= 50'
+```
+
+The JSON report contains two payloads:
+
+- **Deterministic** — Merkle tree, capabilities, findings, risk score (reproducible, signed)
+- **Ephemeral** — LLM analysis, risk adjustment (non-deterministic, not signed)
+
+---
 
 ## Architecture
 
 ```
 aegis scan ./skill
     │
-    ├── coordinator.py      # File discovery (git / directory walk)
-    ├── ast_parser.py       # AST analysis + pessimistic scope extraction
-    ├── binary_detector.py  # External binary detection
-    ├── combo_analyzer.py   # Trifecta combination risks
-    ├── llm_judge.py        # Optional LLM analysis (BYOK)
-    ├── hasher.py           # Lazy Merkle tree
-    ├── signer.py           # Ed25519 signing
-    ├── rule_engine.py      # Policy evaluation
-    └── reporter/           # JSON + Rich console output
+    ├── coordinator.py       → File discovery (git-aware / directory walk)
+    ├── ast_parser.py        → AST analysis + pessimistic scope extraction
+    ├── secret_scanner.py    → 30+ secret patterns
+    ├── shell_analyzer.py    → Dangerous shell patterns
+    ├── js_analyzer.py       → JS/TS vulnerability patterns
+    ├── config_analyzer.py   → YAML/JSON/TOML/INI risky settings
+    ├── combo_analyzer.py    → Multi-capability attack chains
+    ├── taint_analyzer.py    → Source→sink data flow tracking
+    ├── binary_detector.py   → External binary classification
+    ├── social_eng_scanner   → Social engineering detection
+    ├── stego_scanner        → Steganography + homoglyphs
+    ├── hasher.py            → Lazy Merkle tree
+    ├── signer.py            → Ed25519 signing
+    ├── rule_engine.py       → Policy evaluation
+    └── reporter/            → JSON + Rich console output
          │
          ▼
     aegis_report.json + aegis.lock
 ```
 
-### Key Design Decisions
+---
 
-1. **Pessimistic Scope Extraction** — Only string literals and simple concatenations are resolved. Variables, f-strings, function calls → `scope: ["*"]`. Never guesses.
+## For Skill Developers
 
-2. **Extensible Signatures** — The `signatures` field in `aegis.lock` has named slots (`developer`, `registry`). Phase 1 populates `developer` only.
+Building a skill? See the [Skill Developer Best Practices](https://github.com/Aegis-Scan/aegis-scan/blob/main/docs/SKILL_DEVELOPER_GUIDE.md) guide for how to make your skills auditable, trustworthy, and easy to verify.
 
-3. **Lazy Merkle Tree** — Every file is a leaf with O(log n) proof verification. The proxy can verify individual files without re-hashing the entire codebase.
-
-4. **Dependency-Free Verification** — `aegis verify` core logic uses only stdlib + `cryptography`. Runs in locked-down CI environments.
-
-5. **Split Risk Score** — `static` (deterministic, signed) + `llm_adjustment` (ephemeral) + `final` (combined). Proxy uses `static` only.
-
-## Outputs
-
-### `aegis_report.json`
-
-Dual-payload report with:
-- **Deterministic**: Merkle tree, capabilities, findings, risk score (reproducible)
-- **Ephemeral**: LLM analysis, risk adjustment (non-deterministic)
-
-### `aegis.lock`
-
-Canonical JSON lockfile containing:
-- Scoped capability map
-- Merkle tree with all intermediate nodes
-- Ed25519 developer signature
-- Static risk score (signed)
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `OPENAI_API_KEY` | OpenAI API key |
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `ANTHROPIC_API_KEY` | Anthropic Claude API key |
-| `AEGIS_OPENAI_MODEL` | Override OpenAI model (default: `gpt-5-mini`) |
-| `AEGIS_GEMINI_MODEL` | Override Gemini model (default: `gemini-2.5-flash`) |
-| `AEGIS_CLAUDE_MODEL` | Override Claude model (default: `claude-opus-4-6`) |
-| `OLLAMA_HOST` | Ollama server URL (default: `http://localhost:11434`) |
-| `OLLAMA_MODEL` | Ollama model name (default: `llama3`) |
-| `AEGIS_LOCAL_OPENAI_URL` | Local server URL (e.g. `http://localhost:11434/v1` for Ollama, `http://localhost:1234/v1` for LM Studio) |
-| `AEGIS_LOCAL_OPENAI_MODEL` | Model name for local OpenAI-compatible server |
-| `AEGIS_LLM_PROVIDER` | Force provider: `openai`, `gemini`, `claude`, `ollama`, `local_openai` |
-
-## Testing
+Run Aegis on your own skill before publishing:
 
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run all tests
-pytest
-
-# Run with verbose output
-pytest -v
-
-# Run specific test file
-pytest tests/test_ast_parser.py
-
-# Run specific test class
-pytest tests/test_hasher.py::TestProofVerification
+cd ./my-skill
+aegis scan --no-llm -v
 ```
+
+Fix PROHIBITED findings. Document RESTRICTED ones. Ship with an `aegis.lock`:
+
+```bash
+aegis lock
+```
+
+---
 
 ## License
 
 Aegis is dual-licensed:
 
-- **Open Source:** [GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE) — free to use, modify, and distribute. If you run a modified version as a network service, you must release your source code under AGPL-3.0.
-- **Commercial / Enterprise:** A proprietary license is available for organizations that need to use Aegis without AGPL obligations (e.g., embedding in proprietary products, running as an internal service without source disclosure, SLAs, and priority support).
+- **Open Source:** [AGPL-3.0](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/LICENSE) — free to use, modify, and distribute. Network service deployments must release source.
+- **Commercial:** Proprietary license available for embedding in proprietary products, running without source disclosure, SLAs, and support.
 
-See [LICENSING.md](./LICENSING.md) for full details on the dual-license model.
+See [LICENSING.md](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/LICENSING.md) for full details. For enterprise inquiries: [enterprise@aegis.network](mailto:enterprise@aegis.network).
 
-For enterprise licensing inquiries, contact [enterprise@aegis.network](mailto:enterprise@aegis.network).
+---
+
+## Contributing
+
+Contributions welcome. By contributing, you agree to the [Contributor License Agreement](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/CLA.md).
+
+```bash
+cd aegis-core
+pip install -e ".[dev]"
+pytest
+```
+
+---
+
+**Python 3.11+ required** | **No network access needed for deterministic scans** | **Works offline**
