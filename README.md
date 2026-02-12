@@ -91,10 +91,8 @@ Checks that the current code matches the signed `aegis.lock`. If any file was mo
 
 ## CLI Reference
 
-### Commands
-
 | Command | Description |
-|---|---|
+|---------|-------------|
 | `aegis scan [path]` | Full security scan with risk scoring |
 | `aegis lock [path]` | Scan + generate signed `aegis.lock` |
 | `aegis verify [path]` | Verify lockfile against current code |
@@ -104,45 +102,7 @@ Checks that the current code matches the signed `aegis.lock`. If any file was mo
 | `aegis mcp-config` | Print MCP config JSON for Cursor / Claude Desktop |
 | `aegis version` | Show the Aegis version |
 
-All commands that take `[path]` default to `.` (current directory).
-
-### `aegis scan` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--verbose` | `-v` | Show per-file findings and extra detail |
-| `--json` | | Output raw JSON to stdout (for CI pipelines) |
-| `--quiet` | `-q` | Suppress all output except errors |
-| `--no-llm` | | Skip LLM analysis (faster, no API cost) |
-| `--no-semgrep` | | Skip bundled Semgrep rules |
-| `--semgrep-rules PATH` | | Path to a custom Semgrep rules directory |
-
-### `aegis lock` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--force` | | Generate lockfile even at CRITICAL risk |
-| `--verbose` | `-v` | Show per-file findings and extra detail |
-| `--json` | | Output raw JSON to stdout |
-| `--quiet` | `-q` | Suppress all output except errors |
-| `--no-llm` | | Skip LLM analysis |
-| `--no-semgrep` | | Skip bundled Semgrep rules |
-| `--semgrep-rules PATH` | | Path to a custom Semgrep rules directory |
-
-### `aegis verify` flags
-
-| Flag | Description |
-|---|---|
-| `--lockfile PATH` | Path to `aegis.lock` (default: `<path>/aegis.lock`) |
-| `--strict` | Bit-for-bit hash check — fail if ANY file changed (including whitespace) |
-| `--json` | Output verification result as JSON |
-
-### `aegis badge` flags
-
-| Flag | Short | Description |
-|---|---|---|
-| `--output` | `-o` | Write badge markdown to a file instead of stdout |
-| `--llm / --no-llm` | | Include or skip LLM analysis (default: skip for speed) |
+All commands that take `[path]` default to `.` (current directory). Common flags: `--no-llm` (skip LLM), `--json` (CI output), `-v` (verbose). Run `aegis scan --help` (or `aegis lock --help`, etc.) for full flags.
 
 ---
 
@@ -187,22 +147,33 @@ See [`aegis-core/README.md`](./aegis-core/README.md) for the full list of model 
 
 We've established personas for code repositories that run with our deterministic checks, no LLM is required. Get to know our code personas:
 
-**🔥 Cracked Dev
-**10x engineer energy. Clean code, solid patterns, minimal permissions. The kind of skill you’d want to maintain.
-**✅ LGTM
-**Looks good. Permissions match intent, scopes make sense, nothing weird. Ship it.
-**🍌 Trust Me Bro
-**Polished on the outside, questionable underneath. Docs vs. code mismatch or odd permissions. Trust, but verify.
-**🤔 You Sure About That?
-**Messy code, missing pieces, docs that overpromise. No obvious malice, but it needs a real review.
-**💕 Co-Dependent Lover
-**Tiny logic, huge dependency tree. Supply chain risk is high here.
-**👺 Permission Goblin
-**Asks for everything: filesystem, network, secrets, the kitchen sink. Over-scoped and worth a closer look.
-**🍝 Spaghetti Monster
-**Unreadable chaos. Very complex and hard to follow. Hard to audit.
-**🐍 The Snake
-**Code looks clean but intent is malicious. Do not use this skill.
+## Vibe Check Personas
+
+Aegis assigns each scanned skill a persona based on deterministic analysis. The Vibe Check shows one of these:
+
+**🔥 Cracked Dev**  
+10x engineer energy. Clean code, smart patterns, minimal permissions. The kind of skill you'd want to maintain.
+
+**✅ LGTM**  
+Looks good to me. Permissions match the intent, scopes are sane, nothing weird. Ship it.
+
+**🍌 Trust Me Bro**  
+Polished on the outside, suspicious on the inside. Docs vs code mismatch or unusual permissions. Trust, but verify.
+
+**🤔 You Sure About That?**  
+The intern special. Messy code, missing pieces, docs that overpromise. No malicious intent, but it needs a real review.
+
+**💕 Co-Dependent Lover**  
+Tiny logic, huge dependency tree. Loves node_modules. Supply chain risk is real here.
+
+**👺 Permission Goblin**  
+Wants everything: filesystem, network, secrets, the kitchen sink. Over-scoped and worth a closer look.
+
+**🍝 Spaghetti Monster**  
+Unreadable chaos. High complexity, hard to follow. Good luck auditing this.
+
+**🐍 The Snake**  
+Warning: This code might look clean, but it isn't. Do not use this skill, it is malicious by design.
 
 ---
 
