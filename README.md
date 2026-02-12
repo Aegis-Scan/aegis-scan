@@ -141,8 +141,6 @@ For local servers:
 | `AEGIS_LOCAL_OPENAI_URL` | Any OpenAI-compatible server URL |
 | `AEGIS_LLM_PROVIDER` | Force a specific provider: `openai`, `gemini`, `claude`, `ollama`, `local_openai` |
 
-See [`aegis-core/README.md`](./aegis-core/README.md) for the full list of model override variables.
-
 ---
 
 We've established personas for code repositories that run with our deterministic checks, no LLM is required. Get to know our code personas:
@@ -532,7 +530,7 @@ Add the same block to your Claude Desktop MCP config. Aegis uses stdio transport
 
 Aegis is available as a skill on [ClawHub](https://clawhub.com). Install it and your agent will automatically audit skills before enabling them.
 
-See [`SKILL.md`](./SKILL.md) for the full skill specification.
+See [SKILL.md](https://github.com/Aegis-Scan/aegis-scan/blob/main/SKILL.md) for the full skill specification.
 
 ---
 
@@ -585,7 +583,7 @@ aegis scan ./skill
 
 ## For Skill Developers
 
-Building a skill? See the [Skill Developer Best Practices](./docs/SKILL_DEVELOPER_GUIDE.md) guide for how to make your skills auditable, trustworthy, and easy to verify.
+Building a skill? See the [Skill Developer Best Practices](https://github.com/Aegis-Scan/aegis-scan/blob/main/docs/SKILL_DEVELOPER_GUIDE.md) guide for how to make your skills auditable, trustworthy, and easy to verify.
 
 Run Aegis on your own skill before publishing:
 
@@ -638,16 +636,18 @@ aegis-audit/
 
 Aegis is dual-licensed:
 
-- **Open Source:** [AGPL-3.0](./aegis-core/LICENSE) — free to use, modify, and distribute. Network service deployments must release source.
+- **Open Source:** [AGPL-3.0](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/LICENSE) — free to use, modify, and distribute. Network service deployments must release source.
 - **Commercial:** Proprietary license available for embedding in proprietary products, running without source disclosure, SLAs, and support.
 
-See [LICENSING.md](./aegis-core/LICENSING.md) for full details. For enterprise inquiries: [enterprise@aegis.network](mailto:enterprise@aegis.network).
+See [LICENSING.md](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/LICENSING.md) for full details. For enterprise inquiries: [miki@launchloop.xyz](mailto:miki@launchloop.xyz).
+
 
 ---
 
 ## Contributing
 
-Contributions welcome. By contributing, you agree to the [Contributor License Agreement](./aegis-core/CLA.md).
+Contributions welcome. By contributing, you agree to the [Contributor License Agreement](https://github.com/Aegis-Scan/aegis-scan/blob/main/aegis-core/CLA.md).
+
 
 ```bash
 cd aegis-core
