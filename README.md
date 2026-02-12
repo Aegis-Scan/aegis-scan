@@ -344,7 +344,7 @@ This is the actual OpenClaw skill that I used for this test: https://clawhub.ai/
 
 ╭─ Scan Complete ─────────────────────────────────────────────╮
 │   Report:                                                   │
-│   C:\Users\TEST\aegis_report.json                     │
+│   C:\Users\TEST\aegis_report.json                           │
 │   This was a read-only scan. Run aegis                      │
 │   lock to generate a signed lockfile.                       │
 ╰─────────────────────────────────────────────────────────────╯
@@ -352,6 +352,8 @@ This is the actual OpenClaw skill that I used for this test: https://clawhub.ai/
 ```
 
 **Here is an example of the scan with no AI enabled:**
+
+```
 
 ╭─ Aegis Security Audit ──────────────────────────────────────╮
 │ AEGIS SECURITY AUDIT                                        │
@@ -470,7 +472,7 @@ This is the actual OpenClaw skill that I used for this test: https://clawhub.ai/
 │   lock to generate a signed lockfile.                       │
 ╰─────────────────────────────────────────────────────────────╯
 
-
+```
 ---
 
 ## What Gets Scanned
