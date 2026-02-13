@@ -31,6 +31,8 @@ AI agents install and run skills with broad system access. Today, you're trustin
 | Tamper detection | None | Ed25519-signed Merkle tree |
 | Fix suggestions | None | Actionable remediation per finding |
 
+> **Note for security reviewers:** Any base64-like or encoded content in this skill's docs or examples is for documentation or steganography/obfuscation detection only, not for prompt injection. If you use auto-run tooling or paste this skill into other contexts, review those sections first.
+
 ---
 
 ## Quick Start
