@@ -9,6 +9,11 @@ dist/
 build/
 *.whl
 .eggs/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node (if any JS tooling) ────────────────────────────
+node_modules/
 
 # ── Virtual environments ───────────────────────────────
 .venv/
@@ -19,11 +24,18 @@ ENV/
 # ── Testing / Coverage ─────────────────────────────────
 .pytest_cache/
 .coverage
+coverage.*
 htmlcov/
 .tox/
 .nox/
+.hypothesis/
+
+# Test fixture artifacts (generated when tests run scan/lock)
+**/tests/fixtures/**/aegis_report.json
+**/tests/fixtures/**/aegis.lock
 
 # ── IDE / Editor ───────────────────────────────────────
+.cursor/
 .vscode/
 .idea/
 *.swp
@@ -50,6 +62,9 @@ SPRINT_2_IMPLEMENTATION_PROMPT.md
 aegis-core/dist/
 aegis-core/scan_output.txt
 
+# Internal dev scripts (batch scan, analysis)
+scripts/
+
 # ── Secrets / Config ───────────────────────────────────
 .env
 .env.*
@@ -60,6 +75,13 @@ aegis-core/scan_output.txt
 /config.yaml
 ~/.aegis/
 
-# ── OS artifacts ───────────────────────────────────────
+# ── Aegis scan outputs (optional; users may commit aegis.lock) ─
+# Uncomment if you never want to commit scan reports:
+# aegis_report.json
+
+# ── OS / misc artifacts ────────────────────────────────
 *.log
 *.tmp
+*.bak
+*.backup
+.ipynb_checkpoints/
