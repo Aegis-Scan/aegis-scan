@@ -2,6 +2,8 @@
 
 **Behavioral security scanner for AI agent skills, like on OpenClaw, and MCP tools.**
 
+Aegis is a **defensive** security auditing tool. It detects malicious patterns in other skills so users can avoid dangerous installs. This skill does not teach or enable attacks — it helps users vet skills before trusting them.
+
 > The "SSL certificate" for AI agent skills — scan, certify, and govern before you trust.
 
 Aegis answers the question every agent user should ask: *"What can this skill actually do, and should I trust it?"*
@@ -42,6 +44,14 @@ AI agents install and run skills with broad system access. Today, you're trustin
 ```bash
 pip install aegis-audit
 ```
+
+```bash
+uv tool install aegis-audit
+```
+
+Both commands install the same package. Pin to a specific version when possible (e.g. `pip install aegis-audit==1.3.0`) and verify the publisher on PyPI before installing. The package source is at [github.com/Aegis-Scan/aegis-scan](https://github.com/Aegis-Scan/aegis-scan).
+
+After install, the `aegis` CLI is available on your PATH.
 
 ### 2. Scan a skill
 
@@ -110,7 +120,9 @@ All commands that take `[path]` default to `.` (current directory). Common flags
 
 ## LLM Setup
 
-Aegis works fully offline with deterministic analysis. LLM analysis is **optional** — it adds an AI second opinion on intent and risk but is never required.
+Aegis works fully offline with deterministic analysis. LLM analysis is **disabled by default** — it adds an AI second opinion on intent and risk but is never required.
+
+**Privacy notice:** When enabled, Aegis sends scanned code to the configured third-party LLM provider (Google, OpenAI, or Anthropic). No data is transmitted unless you explicitly configure an API key and run a scan without `--no-llm`. Do not enable LLM mode on repositories containing secrets or sensitive code unless you trust the provider.
 
 ### Option A: Interactive setup (recommended)
 
