@@ -49,7 +49,7 @@ pip install aegis-audit
 uv tool install aegis-audit
 ```
 
-Both commands install the same package. Pin to a specific version when possible (e.g. `pip install aegis-audit==1.3.0`) and verify the publisher on PyPI before installing. The package source is at [github.com/Aegis-Scan/aegis-scan](https://github.com/Aegis-Scan/aegis-scan).
+The package source is at [github.com/Aegis-Scan/aegis-scan](https://github.com/Aegis-Scan/aegis-scan).
 
 After install, the `aegis` CLI is available on your PATH.
 
