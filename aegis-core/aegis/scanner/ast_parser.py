@@ -1667,15 +1667,14 @@ class AegisASTVisitor(ast.NodeVisitor):
 
         # ── Check prohibited patterns ──
 
-        # Direct prohibited calls: eval(), exec(), compile()
-        base_name = call_name.split(".")[-1]
-        if base_name in PROHIBITED_FUNCTIONS:
+        # Direct prohibited calls: eval(), exec(), compile() — NOT re.compile
+        if call_name in PROHIBITED_FUNCTIONS:
             self.prohibited_findings.append(
                 _prohibited(
                     call_name,
-                    PROHIBITED_FUNCTIONS[base_name],
+                    PROHIBITED_FUNCTIONS[call_name],
                     risk_note=(
-                        f"{base_name}() executes arbitrary code from strings — "
+                        f"{call_name}() executes arbitrary code from strings — "
                         "the code doesn't exist in the source until runtime, "
                         "making it invisible to static analysis."
                     ),
