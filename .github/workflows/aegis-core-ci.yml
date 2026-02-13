@@ -33,7 +33,7 @@ jobs:
         run: pytest -q
 
       - name: Security self-scan (no LLM)
-        run: python -m aegis.cli scan . --json --no-llm --no-semgrep -q
+        run: python -m aegis.cli scan aegis --json --no-llm --no-semgrep -q
 
       - name: Dependency vulnerability audit
         run: |
